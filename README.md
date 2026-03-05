@@ -1,25 +1,20 @@
-# Red de Consejeros — Monorepo (Fases 1 y 2)
+# Red de Consejeros — Monorepo (Fases 1, 2 y 3)
 
-Monorepo con backend NestJS + Prisma + PostgreSQL y frontend Next.js placeholder.
+Backend NestJS + Prisma + PostgreSQL y frontend Next.js placeholder.
 
 ## Estructura
 - `backend/`: API NestJS 10 + Prisma
 - `frontend/`: Next.js + Tailwind (placeholder)
 
-## Requisitos (Windows)
-- Node.js 20+
-- npm 10+
-- PostgreSQL local
-
-## Base de datos local (obligatoria en este proyecto)
-Configurar PostgreSQL con:
+## Base de datos local
+PostgreSQL local:
 - host: `localhost`
 - port: `5434`
 - user: `postgres`
 - password: `postgres`
 - db: `red_consejeros`
 
-`DATABASE_URL` esperada:
+`DATABASE_URL`:
 `postgresql://postgres:postgres@localhost:5434/red_consejeros?schema=public`
 
 ## Backend setup
@@ -33,8 +28,6 @@ npm run prisma:seed
 npm run start:dev
 ```
 
-Base URL API: `http://localhost:3001/api`
-
 ## Frontend placeholder
 ```bash
 cd frontend
@@ -42,61 +35,94 @@ npm install
 npm run dev
 ```
 
-## Modelo de datos
-- `AdminUser`: autenticación de administradores.
-- `AuditLog`: trazabilidad mínima de acciones.
-- `Person`: persona base (código, nombre, correo institucional, teléfono, descripción pública, foto).
-- `RepresentativeMandate` (histórico): mandatos de representación por persona.
-- `Leader`: liderazgos por persona.
-- `BoardMandate`: cargos en mesa/consejo por persona.
+## Fase 2 (modelo académico y representaciones)
+Incluye `Person`, `RepresentativeMandate`, `Leader`, `BoardMandate` con reglas de exclusividad y endpoints RBAC para SECRETARIO/SUPERADMIN.
 
-## Reglas críticas de negocio
-1. Una persona solo puede tener **1 RepresentativeMandate ACTIVE** a la vez.
-2. Una persona no puede tener **Leader activo** si tiene `RepresentativeMandate ACTIVE`.
-3. Una persona no puede tener `RepresentativeMandate ACTIVE` si tiene **Leader activo**.
-4. Crear mandato exige `start_date`.
-5. Cerrar mandato exige `end_date` válida y `end_date >= start_date`.
+## Fase 3 (eventos + uploads + galería)
 
-### Enforcement
-- DB: índice único parcial `uq_rep_active_per_person` para impedir más de 1 mandato ACTIVE por persona.
-- DB: índice único parcial `uq_leader_active_per_person` para impedir más de 1 liderazgo activo por persona.
-- Servicio: validaciones cruzadas transaccionales entre `RepresentativeMandate` y `Leader`.
+### Modelo
+- `Event`: slug, título, descripción, tipo (`PUBLIC_EVENT | ASSEMBLY | BOARD_MEETING`), visibilidad (`PUBLIC | HIDDEN`), fecha, hora inicio/fin, ubicación, soft-delete.
+- `EventPhoto`: URL lógica de foto, caption y orden.
 
-## Endpoints implementados
-### Auth/Admin (Fase 1)
-- `POST /api/auth/login`
-- `POST /api/auth/logout`
-- `GET /api/auth/me`
-- `POST /api/admin-users` (SUPERADMIN)
-- `PATCH /api/admin-users/:id/reset-password` (SUPERADMIN)
-- `PATCH /api/admin-users/:id/disable` (SUPERADMIN)
+### Estado computado de evento
+El estado no se guarda en DB. La API calcula:
+- `PROXIMO`
+- `EN_REALIZACION`
+- `FINALIZADO`
 
-### People (SECRETARIO y SUPERADMIN)
-- `POST /api/people`
-- `GET /api/people?query=...`
-- `GET /api/people/:id`
-- `PATCH /api/people/:id`
+según fecha/hora vs now (`APP_TIMEZONE`, por defecto `America/Bogota`).
 
-### Representation (SECRETARIO y SUPERADMIN)
-- `POST /api/representation/mandates`
-- `PATCH /api/representation/mandates/:id/close`
-- `GET /api/representation/active`
-- `GET /api/representation/history/:personId`
+### Uploads (StorageService + LocalStorageService)
+- Implementación desacoplada vía `StorageService` para migrar en futuro a S3/MinIO.
+- Implementación local guarda bajo `backend/uploads` servido por `GET /uploads/*`.
+- Carpetas:
+  - `uploads/eventos/<slug>/...`
+  - `uploads/repres/...`
+  - `uploads/lideres/...`
+  - `uploads/junta/...`
+  - `uploads/noticias/...`
+  - `uploads/documentos/...`
 
-### Leaders (SECRETARIO y SUPERADMIN)
-- `POST /api/leaders`
-- `PATCH /api/leaders/:id/deactivate`
-- `GET /api/leaders/active`
+> Las carpetas de eventos se crean **on-demand** al subir la primera foto.
+> En DB solo se almacenan rutas lógicas (ej: `/uploads/eventos/mi-evento/archivo.webp`).
 
-### Board (SECRETARIO y SUPERADMIN)
-- `POST /api/board/mandates`
-- `PATCH /api/board/mandates/:id/close`
-- `GET /api/board/active`
-- `GET /api/board/history/:personId`
+### Reglas de subida de imágenes
+- máximo 5MB
+- tipos permitidos: `jpg`, `png`, `webp`
+- nombre sanitizado + nombre único (`timestamp + random`)
 
-## Seed inicial admins
-- `admin.ti@umanizales.edu.co / Admin123!`
-- `secretario@umanizales.edu.co / Secretario123!`
-- `comunicaciones@umanizales.edu.co / Comms123!`
+## Endpoints Fase 3
+### Eventos (SECRETARIO / COMUNICACIONES / SUPERADMIN)
+- `POST /api/events`
+- `PATCH /api/events/:id`
+- `DELETE /api/events/:id` (soft delete)
 
-> Cambiar contraseñas/secretos en producción.
+### Lectura de eventos
+- `GET /api/events`
+  - público: solo `visibility=PUBLIC`
+  - admin autenticado: todos
+- `GET /api/events/:slug`
+  - público: solo eventos `PUBLIC`
+  - admin autenticado: puede ver `HIDDEN`
+
+### Fotos de evento
+- `POST /api/events/:id/photos` (multipart/form-data, campo `file`)
+- `PATCH /api/events/:id/photos/:photoId` (caption/sort_order)
+- `DELETE /api/events/:id/photos/:photoId`
+
+## Ejemplos curl
+
+### Login
+```bash
+curl -i -c cookies.txt -X POST http://localhost:3001/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"secretario@umanizales.edu.co","password":"Secretario123!"}'
+```
+
+### Crear evento
+```bash
+curl -b cookies.txt -X POST http://localhost:3001/api/events \
+  -H "Content-Type: application/json" \
+  -d '{
+    "slug":"asamblea-marzo-2026",
+    "title":"Asamblea General Marzo",
+    "description":"Encuentro de representantes",
+    "type":"ASSEMBLY",
+    "visibility":"PUBLIC",
+    "date":"2026-03-15",
+    "startTime":"09:00",
+    "endTime":"12:00",
+    "location":"Auditorio Central"
+  }'
+```
+
+### Subir foto a evento
+```bash
+curl -b cookies.txt -X POST http://localhost:3001/api/events/<EVENT_ID>/photos \
+  -F "file=@C:/ruta/foto.webp"
+```
+
+### Ver evento por slug (público)
+```bash
+curl http://localhost:3001/api/events/asamblea-marzo-2026
+```
