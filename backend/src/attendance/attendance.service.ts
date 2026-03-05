@@ -11,6 +11,7 @@ import { PrismaService } from '../database/prisma.service';
 import { CreateAttendanceSessionDto } from './dto/create-attendance-session.dto';
 import { ManualAttendanceDto } from './dto/manual-attendance.dto';
 import { ScanAttendanceDto } from './dto/scan-attendance.dto';
+import { ListAttendanceSessionsQueryDto } from './dto/list-attendance-sessions-query.dto';
 
 @Injectable()
 export class AttendanceService {
@@ -45,6 +46,55 @@ export class AttendanceService {
 
     await this.log(adminId, 'CREATE_ATTENDANCE_SESSION', session.id, { type: dto.type, eventId: dto.eventId ?? null });
     return session;
+  }
+
+
+  async listSessions(query: ListAttendanceSessionsQueryDto) {
+    const where: Prisma.AttendanceSessionWhereInput = {};
+
+    if (query.q?.trim()) {
+      const q = query.q.trim();
+      where.OR = [
+        { name: { contains: q, mode: Prisma.QueryMode.insensitive } },
+        { shortDescription: { contains: q, mode: Prisma.QueryMode.insensitive } },
+      ];
+    }
+
+    if (query.eventId?.trim()) {
+      where.eventId = query.eventId.trim();
+    }
+
+    if (query.type) {
+      where.type = query.type;
+    }
+
+    if (query.from || query.to) {
+      where.activeFrom = {};
+      if (query.from) {
+        where.activeFrom.gte = new Date(query.from);
+      }
+      if (query.to) {
+        where.activeFrom.lte = new Date(query.to);
+      }
+    }
+
+    return this.prisma.attendanceSession.findMany({
+      where,
+      include: {
+        event: {
+          select: {
+            id: true,
+            title: true,
+          },
+        },
+        _count: {
+          select: {
+            records: true,
+          },
+        },
+      },
+      orderBy: { activeFrom: 'desc' },
+    });
   }
 
   async getSessionDetails(id: string) {
@@ -99,7 +149,12 @@ export class AttendanceService {
       throw new BadRequestException('SESSION_OUT_OF_WINDOW');
     }
 
-    const person = await this.prisma.person.findUnique({ where: { studentCode: dto.studentCode } });
+    const normalizedStudentCode = dto.studentCode.trim();
+    if (!normalizedStudentCode) {
+      throw new BadRequestException('studentCode es requerido');
+    }
+
+    const person = await this.prisma.person.findUnique({ where: { studentCode: normalizedStudentCode } });
     if (!person) {
       throw new NotFoundException('NOT_REGISTERED');
     }
@@ -165,7 +220,12 @@ export class AttendanceService {
   }
 
   private async findOrCreatePerson(dto: ManualAttendanceDto) {
-    const existing = await this.prisma.person.findUnique({ where: { studentCode: dto.studentCode } });
+    const studentCode = dto.studentCode.trim();
+    if (!studentCode) {
+      throw new BadRequestException('studentCode es requerido');
+    }
+
+    const existing = await this.prisma.person.findUnique({ where: { studentCode } });
     if (existing) return existing;
 
     if (!dto.fullName || !dto.institutionalEmail) {
@@ -177,7 +237,7 @@ export class AttendanceService {
     try {
       return await this.prisma.person.create({
         data: {
-          studentCode: dto.studentCode,
+          studentCode,
           fullName: dto.fullName,
           institutionalEmail: dto.institutionalEmail,
         },
