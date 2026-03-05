@@ -1,4 +1,5 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../database/prisma.service';
 import { CreatePersonDto } from './dto/create-person.dto';
 import { UpdatePersonDto } from './dto/update-person.dto';
@@ -52,13 +53,17 @@ export class PeopleService {
     await this.getById(id);
     try {
       const person = await this.prisma.person.update({ where: { id }, data: dto });
+      const metadata: Prisma.InputJsonObject = Object.fromEntries(
+        Object.entries(dto).filter(([, value]) => value !== undefined),
+      );
+
       await this.prisma.auditLog.create({
         data: {
           actorAdminId: actorId,
           action: 'UPDATE_PERSON',
           entity: 'PERSON',
           entityId: person.id,
-          metadata: dto,
+          metadata,
         },
       });
       return person;
