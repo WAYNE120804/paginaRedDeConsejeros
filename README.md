@@ -1,4 +1,4 @@
-# Red de Consejeros — Monorepo (Fases 1, 2 y 3)
+# Red de Consejeros — Monorepo (Fases 1 a 4)
 
 Backend NestJS + Prisma + PostgreSQL y frontend Next.js placeholder.
 
@@ -35,94 +35,107 @@ npm install
 npm run dev
 ```
 
-## Fase 2 (modelo académico y representaciones)
-Incluye `Person`, `RepresentativeMandate`, `Leader`, `BoardMandate` con reglas de exclusividad y endpoints RBAC para SECRETARIO/SUPERADMIN.
-
 ## Fase 3 (eventos + uploads + galería)
+- Storage desacoplado con `StorageService` y `LocalStorageService`.
+- Archivos servidos por `GET /uploads/*`.
+- Eventos públicos/ocultos y galería por evento.
+- Carpetas de eventos se crean **on-demand** al subir la primera foto.
+- DB guarda solo rutas lógicas (`/uploads/...`).
+
+## Fase 4 (asistencia QR + manual + export Excel)
 
 ### Modelo
-- `Event`: slug, título, descripción, tipo (`PUBLIC_EVENT | ASSEMBLY | BOARD_MEETING`), visibilidad (`PUBLIC | HIDDEN`), fecha, hora inicio/fin, ubicación, soft-delete.
-- `EventPhoto`: URL lógica de foto, caption y orden.
+- `AttendanceSession`:
+  - `type: ASSEMBLY | BOARD | EVENT`
+  - `event_id` nullable
+  - `name`, `short_description`
+  - `token` único secreto
+  - `active_from`, `active_until`
+  - `allow_manual`
+  - `created_by_admin_id`
+- `AttendanceRecord`:
+  - `session_id`, `person_id`
+  - `mode: QR | MANUAL`
+  - `timestamp`, `note`, `recorded_by_admin_id`
+  - `unique(session_id, person_id)` para evitar duplicados
 
-### Estado computado de evento
-El estado no se guarda en DB. La API calcula:
-- `PROXIMO`
-- `EN_REALIZACION`
-- `FINALIZADO`
+### Flujo QR
+1. Admin crea sesión (`POST /api/attendance/sessions`).
+2. Obtiene detalles y QR URL (`GET /api/attendance/sessions/:id`).
+3. Público escanea QR y registra con código (`POST /api/attendance/scan/:token`).
+4. Validaciones:
+   - token válido,
+   - ventana activa (`active_from`/`active_until`),
+   - persona existente (si no, error `NOT_REGISTERED`),
+   - no duplicado por sesión.
 
-según fecha/hora vs now (`APP_TIMEZONE`, por defecto `America/Bogota`).
+### Flujo manual
+- Endpoint admin: `POST /api/attendance/sessions/:id/records/manual`.
+- Requiere `allow_manual=true`.
+- Si `student_code` no existe, permite crear persona básica en la misma operación usando `fullName` e `institutionalEmail`.
 
-### Uploads (StorageService + LocalStorageService)
-- Implementación desacoplada vía `StorageService` para migrar en futuro a S3/MinIO.
-- Implementación local guarda bajo `backend/uploads` servido por `GET /uploads/*`.
-- Carpetas:
-  - `uploads/eventos/<slug>/...`
-  - `uploads/repres/...`
-  - `uploads/lideres/...`
-  - `uploads/junta/...`
-  - `uploads/noticias/...`
-  - `uploads/documentos/...`
+### Export Excel
+- `GET /api/attendance/sessions/:id/export.xlsx`
+- Incluye columnas:
+  - nombre
+  - código
+  - correo
+  - rol actual (`REPRESENTANTE`, `LIDER`, `NINGUNO`)
+  - timestamp
+  - modo
 
-> Las carpetas de eventos se crean **on-demand** al subir la primera foto.
-> En DB solo se almacenan rutas lógicas (ej: `/uploads/eventos/mi-evento/archivo.webp`).
+## Endpoints Fase 4
+### Admin (SECRETARIO/SUPERADMIN)
+- `POST /api/attendance/sessions`
+- `GET /api/attendance/sessions/:id`
+- `GET /api/attendance/sessions/:id/records`
+- `POST /api/attendance/sessions/:id/records/manual`
+- `GET /api/attendance/sessions/:id/export.xlsx`
 
-### Reglas de subida de imágenes
-- máximo 5MB
-- tipos permitidos: `jpg`, `png`, `webp`
-- nombre sanitizado + nombre único (`timestamp + random`)
+### Público
+- `POST /api/attendance/scan/:token`
 
-## Endpoints Fase 3
-### Eventos (SECRETARIO / COMUNICACIONES / SUPERADMIN)
-- `POST /api/events`
-- `PATCH /api/events/:id`
-- `DELETE /api/events/:id` (soft delete)
+## Ejemplos curl (asistencia)
 
-### Lectura de eventos
-- `GET /api/events`
-  - público: solo `visibility=PUBLIC`
-  - admin autenticado: todos
-- `GET /api/events/:slug`
-  - público: solo eventos `PUBLIC`
-  - admin autenticado: puede ver `HIDDEN`
-
-### Fotos de evento
-- `POST /api/events/:id/photos` (multipart/form-data, campo `file`)
-- `PATCH /api/events/:id/photos/:photoId` (caption/sort_order)
-- `DELETE /api/events/:id/photos/:photoId`
-
-## Ejemplos curl
-
-### Login
+### Crear sesión de asistencia
 ```bash
-curl -i -c cookies.txt -X POST http://localhost:3001/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"email":"secretario@umanizales.edu.co","password":"Secretario123!"}'
-```
-
-### Crear evento
-```bash
-curl -b cookies.txt -X POST http://localhost:3001/api/events \
+curl -b cookies.txt -X POST http://localhost:3001/api/attendance/sessions \
   -H "Content-Type: application/json" \
   -d '{
-    "slug":"asamblea-marzo-2026",
-    "title":"Asamblea General Marzo",
-    "description":"Encuentro de representantes",
     "type":"ASSEMBLY",
-    "visibility":"PUBLIC",
-    "date":"2026-03-15",
-    "startTime":"09:00",
-    "endTime":"12:00",
-    "location":"Auditorio Central"
+    "name":"Asamblea Marzo 2026",
+    "shortDescription":"Control de ingreso",
+    "activeFrom":"2026-03-20T13:00:00.000Z",
+    "activeUntil":"2026-03-20T16:00:00.000Z",
+    "allowManual":true
   }'
 ```
 
-### Subir foto a evento
+### Ver detalles de sesión + QR URL
 ```bash
-curl -b cookies.txt -X POST http://localhost:3001/api/events/<EVENT_ID>/photos \
-  -F "file=@C:/ruta/foto.webp"
+curl -b cookies.txt http://localhost:3001/api/attendance/sessions/<SESSION_ID>
 ```
 
-### Ver evento por slug (público)
+### Registrar asistencia por QR (público)
 ```bash
-curl http://localhost:3001/api/events/asamblea-marzo-2026
+curl -X POST http://localhost:3001/api/attendance/scan/<TOKEN> \
+  -H "Content-Type: application/json" \
+  -d '{"studentCode":"20260001"}'
+```
+
+### Registrar asistencia manual (creando persona si no existe)
+```bash
+curl -b cookies.txt -X POST http://localhost:3001/api/attendance/sessions/<SESSION_ID>/records/manual \
+  -H "Content-Type: application/json" \
+  -d '{
+    "studentCode":"20269999",
+    "fullName":"Persona Nueva",
+    "institutionalEmail":"persona.nueva@umanizales.edu.co",
+    "note":"Ingreso manual"
+  }'
+```
+
+### Exportar excel
+```bash
+curl -L -b cookies.txt http://localhost:3001/api/attendance/sessions/<SESSION_ID>/export.xlsx -o asistencia.xlsx
 ```
