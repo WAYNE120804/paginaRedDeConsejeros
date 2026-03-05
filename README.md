@@ -62,12 +62,15 @@ npm run dev
 ### Flujo QR
 1. Admin crea sesión (`POST /api/attendance/sessions`).
 2. Obtiene detalles y QR URL (`GET /api/attendance/sessions/:id`).
-3. Público escanea QR y registra con código (`POST /api/attendance/scan/:token`).
-4. Validaciones:
+3. Público escanea QR y abre la página pública `/asistencia/scan/:token` (frontend).
+4. Esa página envía `POST /api/attendance/scan/:token` con el código estudiantil para registrar.
+5. Validaciones:
    - token válido,
    - ventana activa (`active_from`/`active_until`),
    - persona existente (si no, error `NOT_REGISTERED`),
    - no duplicado por sesión.
+
+- Configura `FRONTEND_PUBLIC_URL` en backend para definir la URL que se codifica en el QR (por defecto `http://localhost:3000`).
 
 ### Flujo manual
 - Endpoint admin: `POST /api/attendance/sessions/:id/records/manual`.

@@ -51,8 +51,8 @@ export class AttendanceService {
     const session = await this.prisma.attendanceSession.findUnique({ where: { id }, include: { event: true } });
     if (!session) throw new NotFoundException('Sesión no encontrada');
 
-    const baseUrl = process.env.PUBLIC_BASE_URL ?? 'http://localhost:3001';
-    const scanUrl = `${baseUrl}/api/attendance/scan/${session.token}`;
+    const frontendBaseUrl = process.env.FRONTEND_PUBLIC_URL ?? 'http://localhost:3000';
+    const scanUrl = `${frontendBaseUrl}/asistencia/scan/${session.token}`;
     const qrDataUrl = await this.generateQrDataUrl(scanUrl);
 
     return { ...session, scanUrl, qrDataUrl };
