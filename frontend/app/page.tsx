@@ -1,3 +1,5 @@
+'use client';
+
 import { PageShell } from '@/components/ui/page-shell';
 import { motion } from 'framer-motion';
 
