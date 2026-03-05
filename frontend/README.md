@@ -46,6 +46,7 @@ npm run dev
   - `/documentos` (categoría)
 - Rutas públicas base implementadas:
   - `/junta`, `/eventos`, `/noticias`
+- Catálogos institucionales por defecto en filtros (facultades, estamentos y cargos de junta), combinados dinámicamente con valores retornados por backend para soportar nuevos cargos/facultades sin cambios de código.
 - Rutas dinámicas preparadas con placeholder para próximas subfases:
   - `/eventos/[slug]` (6C)
   - `/noticias/[slug]` (6D)
