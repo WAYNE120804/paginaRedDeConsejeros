@@ -8,6 +8,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const logger = new Logger('Bootstrap');
 
+  app.enableShutdownHooks();
   app.setGlobalPrefix('api');
   app.useGlobalPipes(
     new ValidationPipe({
@@ -20,7 +21,6 @@ async function bootstrap() {
   app.use(cookieParser());
   app.enableCors({ origin: true, credentials: true });
 
-  app.enableShutdownHooks();
   const port = process.env.PORT || 3001;
   await app.listen(port);
   logger.log(`Backend running on http://localhost:${port}`);

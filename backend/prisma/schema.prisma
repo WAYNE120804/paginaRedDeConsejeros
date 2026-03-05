@@ -13,6 +13,18 @@ enum AdminRole {
   COMUNICACIONES
 }
 
+enum MandateStatus {
+  ACTIVE
+  ENDED
+}
+
+enum BoardPosition {
+  PRESIDENTE
+  VICEPRESIDENTE
+  SECRETARIO
+  VOCAL
+}
+
 model AdminUser {
   id           String    @id @default(uuid())
   email        String    @unique
@@ -28,14 +40,78 @@ model AdminUser {
 }
 
 model AuditLog {
-  id           String    @id @default(uuid())
-  actorAdminId String?   @map("actor_admin_id")
+  id           String     @id @default(uuid())
+  actorAdminId String?    @map("actor_admin_id")
   actorAdmin   AdminUser? @relation(fields: [actorAdminId], references: [id])
   action       String
   entity       String
-  entityId     String?   @map("entity_id")
-  metadata     Json      @default("{}")
-  createdAt    DateTime  @default(now()) @map("created_at")
+  entityId     String?    @map("entity_id")
+  metadata     Json       @default("{}")
+  createdAt    DateTime   @default(now()) @map("created_at")
 
   @@map("audit_logs")
+}
+
+model Person {
+  id                 String                  @id @default(uuid())
+  studentCode        String                  @unique @map("student_code")
+  fullName           String                  @map("full_name")
+  institutionalEmail String                  @unique @map("institutional_email")
+  phone              String?
+  publicDescription  String?                 @map("public_description")
+  photoUrl           String?                 @map("photo_url")
+  createdAt          DateTime                @default(now()) @map("created_at")
+  updatedAt          DateTime                @updatedAt @map("updated_at")
+  representativeMandates RepresentativeMandate[]
+  leaders            Leader[]
+  boardMandates      BoardMandate[]
+
+  @@map("people")
+}
+
+model RepresentativeMandate {
+  id         String       @id @default(uuid())
+  personId   String       @map("person_id")
+  person     Person       @relation(fields: [personId], references: [id])
+  estateType String       @map("estate_type")
+  faculty    String
+  program    String
+  startDate  DateTime     @map("start_date")
+  endDate    DateTime?    @map("end_date")
+  tshirtSize String?      @map("tshirt_size")
+  status     MandateStatus @default(ACTIVE)
+  createdAt  DateTime     @default(now()) @map("created_at")
+
+  @@index([personId])
+  @@map("representative_mandates")
+}
+
+model Leader {
+  id          String    @id @default(uuid())
+  personId    String    @map("person_id")
+  person      Person    @relation(fields: [personId], references: [id])
+  faculty     String
+  program     String
+  description String?
+  startDate   DateTime  @map("start_date")
+  isActive    Boolean   @default(true) @map("is_active")
+  endDate     DateTime? @map("end_date")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  @@index([personId])
+  @@map("leaders")
+}
+
+model BoardMandate {
+  id        String       @id @default(uuid())
+  personId  String       @map("person_id")
+  person    Person       @relation(fields: [personId], references: [id])
+  position  BoardPosition
+  startDate DateTime     @map("start_date")
+  endDate   DateTime?    @map("end_date")
+  isActive  Boolean      @default(true) @map("is_active")
+  createdAt DateTime     @default(now()) @map("created_at")
+
+  @@index([personId])
+  @@map("board_mandates")
 }

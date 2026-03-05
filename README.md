@@ -1,143 +1,102 @@
-# Red de Consejeros — Monorepo (Fase 1)
+# Red de Consejeros — Monorepo (Fases 1 y 2)
 
-Esta FASE 1 deja listo el **backend completo** (NestJS + Prisma + PostgreSQL) con Auth, roles, endpoints de administración, auditoría y seed inicial; y además crea el **esqueleto del frontend** (Next.js + Tailwind) como placeholder.
+Monorepo con backend NestJS + Prisma + PostgreSQL y frontend Next.js placeholder.
 
 ## Estructura
-
-- `backend/`: API NestJS 10 + Prisma + PostgreSQL
-- `frontend/`: Next.js 14 + Tailwind (placeholder)
+- `backend/`: API NestJS 10 + Prisma
+- `frontend/`: Next.js + Tailwind (placeholder)
 
 ## Requisitos (Windows)
-
 - Node.js 20+
-- npm 10+ (o pnpm)
-- PostgreSQL 14+ corriendo localmente
+- npm 10+
+- PostgreSQL local
 
-## Configuración de PostgreSQL local
+## Base de datos local (obligatoria en este proyecto)
+Configurar PostgreSQL con:
+- host: `localhost`
+- port: `5434`
+- user: `postgres`
+- password: `postgres`
+- db: `red_consejeros`
 
-Asegúrate de tener esta instancia:
+`DATABASE_URL` esperada:
+`postgresql://postgres:postgres@localhost:5434/red_consejeros?schema=public`
 
-- Host: `localhost`
-- Port: `5432`
-- User: `postgres`
-- Password: `postgres`
-- Database: `red_consejeros`
-
-Crear DB (ejemplo con `psql`):
-
-```bash
-psql -U postgres -h localhost -p 5432 -c "CREATE DATABASE red_consejeros;"
-```
-
-## Backend
-
-### 1) Variables de entorno
-
-Copiar y ajustar:
-
+## Backend setup
 ```bash
 cd backend
 copy .env.example .env
-```
-
-`.env` por defecto:
-
-```env
-PORT=3001
-DATABASE_URL="postgresql://postgres:postgres@localhost:5432/red_consejeros?schema=public"
-JWT_SECRET="dev-secret"
-JWT_EXPIRES_IN="8h"
-```
-
-> ⚠️ En producción cambia secretos y contraseñas inmediatamente.
-
-### 2) Instalar dependencias
-
-```bash
-cd backend
 npm install
-```
-
-### 3) Prisma migrate + generate + seed
-
-```bash
-cd backend
 npx prisma generate
 npx prisma migrate dev
 npm run prisma:seed
-```
-
-### 4) Correr backend en desarrollo
-
-```bash
-cd backend
 npm run start:dev
 ```
 
-Base URL backend: `http://localhost:3001/api`
+Base URL API: `http://localhost:3001/api`
 
-## Frontend (placeholder)
-
+## Frontend placeholder
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
 
-URL frontend: `http://localhost:3000`
+## Modelo de datos
+- `AdminUser`: autenticación de administradores.
+- `AuditLog`: trazabilidad mínima de acciones.
+- `Person`: persona base (código, nombre, correo institucional, teléfono, descripción pública, foto).
+- `RepresentativeMandate` (histórico): mandatos de representación por persona.
+- `Leader`: liderazgos por persona.
+- `BoardMandate`: cargos en mesa/consejo por persona.
 
-## Auth y Roles implementados
+## Reglas críticas de negocio
+1. Una persona solo puede tener **1 RepresentativeMandate ACTIVE** a la vez.
+2. Una persona no puede tener **Leader activo** si tiene `RepresentativeMandate ACTIVE`.
+3. Una persona no puede tener `RepresentativeMandate ACTIVE` si tiene **Leader activo**.
+4. Crear mandato exige `start_date`.
+5. Cerrar mandato exige `end_date` válida y `end_date >= start_date`.
 
-Roles:
-- `SUPERADMIN`
-- `SECRETARIO`
-- `COMUNICACIONES`
+### Enforcement
+- DB: índice único parcial `uq_rep_active_per_person` para impedir más de 1 mandato ACTIVE por persona.
+- DB: índice único parcial `uq_leader_active_per_person` para impedir más de 1 liderazgo activo por persona.
+- Servicio: validaciones cruzadas transaccionales entre `RepresentativeMandate` y `Leader`.
 
-Seed inicial:
+## Endpoints implementados
+### Auth/Admin (Fase 1)
+- `POST /api/auth/login`
+- `POST /api/auth/logout`
+- `GET /api/auth/me`
+- `POST /api/admin-users` (SUPERADMIN)
+- `PATCH /api/admin-users/:id/reset-password` (SUPERADMIN)
+- `PATCH /api/admin-users/:id/disable` (SUPERADMIN)
+
+### People (SECRETARIO y SUPERADMIN)
+- `POST /api/people`
+- `GET /api/people?query=...`
+- `GET /api/people/:id`
+- `PATCH /api/people/:id`
+
+### Representation (SECRETARIO y SUPERADMIN)
+- `POST /api/representation/mandates`
+- `PATCH /api/representation/mandates/:id/close`
+- `GET /api/representation/active`
+- `GET /api/representation/history/:personId`
+
+### Leaders (SECRETARIO y SUPERADMIN)
+- `POST /api/leaders`
+- `PATCH /api/leaders/:id/deactivate`
+- `GET /api/leaders/active`
+
+### Board (SECRETARIO y SUPERADMIN)
+- `POST /api/board/mandates`
+- `PATCH /api/board/mandates/:id/close`
+- `GET /api/board/active`
+- `GET /api/board/history/:personId`
+
+## Seed inicial admins
 - `admin.ti@umanizales.edu.co / Admin123!`
 - `secretario@umanizales.edu.co / Secretario123!`
 - `comunicaciones@umanizales.edu.co / Comms123!`
 
-> ⚠️ Cambiar estas contraseñas en cualquier entorno real.
-
-## Endpoints Fase 1
-
-- `POST /api/auth/login`
-- `POST /api/auth/logout`
-- `GET /api/auth/me`
-- `POST /api/admin-users` (solo SUPERADMIN)
-- `PATCH /api/admin-users/:id/reset-password` (solo SUPERADMIN)
-- `PATCH /api/admin-users/:id/disable` (solo SUPERADMIN)
-
-Respuesta JSON consistente:
-
-```json
-{
-  "data": {},
-  "error": null
-}
-```
-
-Errores:
-
-```json
-{
-  "data": null,
-  "error": {
-    "statusCode": 400,
-    "message": "..."
-  }
-}
-```
-
-## Seguridad básica implementada
-
-- Hash de contraseñas con `bcrypt`
-- JWT con expiración (`8h` por defecto)
-- JWT en cookie `httpOnly` + token en body para compatibilidad
-- Guards `JwtAuthGuard` + `RolesGuard`
-- Decorador `@Roles(...)`
-- DTOs con `class-validator`
-- ExceptionFilter global
-- Registro básico de acciones en `AuditLog`
-- Tests e2e mínimos para login, `/me` y restricción de rol
+> Cambiar contraseñas/secretos en producción.
