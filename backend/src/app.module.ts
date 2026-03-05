@@ -11,6 +11,9 @@ import { StorageModule } from './storage/storage.module';
 import { EventsModule } from './events/events.module';
 import { AttendanceModule } from './attendance/attendance.module';
 import { AppController } from './app.controller';
+import { NewsModule } from './news/news.module';
+import { DocumentsModule } from './documents/documents.module';
+import { ReportsModule } from './reports/reports.module';
 
 @Module({
   controllers: [AppController],
@@ -26,6 +29,9 @@ import { AppController } from './app.controller';
     BoardModule,
     EventsModule,
     AttendanceModule,
+    NewsModule,
+    DocumentsModule,
+    ReportsModule,
   ],
 })
 export class AppModule {}

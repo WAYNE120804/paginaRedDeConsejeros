@@ -1,4 +1,4 @@
-# Red de Consejeros — Monorepo (Fases 1 a 4)
+# Red de Consejeros — Monorepo (Fases 1 a 5)
 
 Backend NestJS + Prisma + PostgreSQL y frontend Next.js placeholder.
 
@@ -140,6 +140,56 @@ curl -b cookies.txt -X POST http://localhost:3001/api/attendance/sessions/<SESSI
 curl -L -b cookies.txt http://localhost:3001/api/attendance/sessions/<SESSION_ID>/export.xlsx -o asistencia.xlsx
 ```
 
+
+## Fase 5 (noticias + documentos + reportes)
+
+### Noticias
+- `News`: `slug`, `title`, `content` (markdown), `status` (`DRAFT|PUBLISHED`), `published_at`, `cover_photo_url`.
+- Endpoints:
+  - `POST /api/news` (COMUNICACIONES/SUPERADMIN)
+  - `PATCH /api/news/:id` (COMUNICACIONES/SUPERADMIN)
+  - `GET /api/news` (público ve solo `PUBLISHED`)
+  - `GET /api/news/:slug` (público ve solo `PUBLISHED`)
+  - `POST /api/news/:id/cover` (upload imagen de portada)
+
+### Documentos públicos
+- `PublicDocument`: `category` (`ESTATUTOS|REGLAMENTOS|LINEAMIENTOS|COMUNICADOS`), `title`, `description`, `pdf_url`, `published_at`, `status` (`PUBLISHED|ARCHIVED`).
+- Endpoints:
+  - `POST /api/documents` (SECRETARIO/SUPERADMIN, multipart PDF + metadata)
+  - `PATCH /api/documents/:id` (SECRETARIO/SUPERADMIN)
+  - `GET /api/documents` (público ve solo `PUBLISHED`)
+  - `GET /api/documents/:id/download` (descarga/redirección de PDF)
+
+### Reportes Excel extra
+- `GET /api/reports/representatives.xlsx` (activos)
+- `GET /api/reports/representatives-history.xlsx?personId=<id>` (histórico global o por persona)
+- `GET /api/reports/leaders.xlsx`
+- `GET /api/reports/board.xlsx`
+
+### Ejemplos curl Fase 5
+```bash
+# Crear noticia
+curl -b cookies.txt -X POST http://localhost:3001/api/news   -H "Content-Type: application/json"   -d '{
+    "slug":"comunicado-marzo-2026",
+    "title":"Comunicado Marzo",
+    "content":"# Contenido en markdown",
+    "status":"PUBLISHED",
+    "publishedAt":"2026-03-06T15:00:00.000Z"
+  }'
+
+# Subir portada de noticia
+curl -b cookies.txt -X POST http://localhost:3001/api/news/<NEWS_ID>/cover   -F "file=@C:/ruta/portada.webp"
+
+# Crear documento público (PDF)
+curl -b cookies.txt -X POST http://localhost:3001/api/documents   -F "file=@C:/ruta/estatutos.pdf"   -F "category=ESTATUTOS"   -F "title=Estatutos vigentes"   -F "description=Versión aprobada"   -F "publishedAt=2026-03-01T00:00:00.000Z"   -F "status=PUBLISHED"
+
+# Descargar documento
+curl -L http://localhost:3001/api/documents/<DOC_ID>/download -o documento.pdf
+
+# Reporte de representantes activos
+curl -L -b cookies.txt http://localhost:3001/api/reports/representatives.xlsx -o representantes.xlsx
+```
+
 ## Troubleshooting rápido
 
 ### 1) `Cannot GET /api`
@@ -162,6 +212,7 @@ Pasos recomendados (desarrollo local):
      - `20260305012000_phase2_data_model`
      - `20260305100000_phase3_events_uploads`
      - `20260305123000_phase4_attendance`
+     - `20260305140000_phase5_news_documents`
 
 2. Elimina carpeta local sobrante `backend/prisma/migrations/20260305022348_` (si existe).
 

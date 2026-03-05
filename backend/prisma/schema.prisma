@@ -47,18 +47,35 @@ enum AttendanceMode {
   MANUAL
 }
 
+enum NewsStatus {
+  DRAFT
+  PUBLISHED
+}
+
+enum PublicDocumentCategory {
+  ESTATUTOS
+  REGLAMENTOS
+  LINEAMIENTOS
+  COMUNICADOS
+}
+
+enum PublicDocumentStatus {
+  PUBLISHED
+  ARCHIVED
+}
+
 model AdminUser {
-  id                         String              @id @default(uuid())
-  email                      String              @unique
-  passwordHash               String              @map("password_hash")
-  role                       AdminRole
-  isActive                   Boolean             @default(true) @map("is_active")
-  createdAt                  DateTime            @default(now()) @map("created_at")
-  updatedAt                  DateTime            @updatedAt @map("updated_at")
-  lastLoginAt                DateTime?           @map("last_login_at")
-  auditLogs                  AuditLog[]
-  attendanceSessionsCreated  AttendanceSession[] @relation("attendance_sessions_creator")
-  attendanceRecordsRecorded  AttendanceRecord[]  @relation("attendance_records_recorder")
+  id                        String              @id @default(uuid())
+  email                     String              @unique
+  passwordHash              String              @map("password_hash")
+  role                      AdminRole
+  isActive                  Boolean             @default(true) @map("is_active")
+  createdAt                 DateTime            @default(now()) @map("created_at")
+  updatedAt                 DateTime            @updatedAt @map("updated_at")
+  lastLoginAt               DateTime?           @map("last_login_at")
+  auditLogs                 AuditLog[]
+  attendanceSessionsCreated AttendanceSession[] @relation("attendance_sessions_creator")
+  attendanceRecordsRecorded AttendanceRecord[]  @relation("attendance_records_recorder")
 
   @@map("admin_users")
 }
@@ -77,15 +94,15 @@ model AuditLog {
 }
 
 model Person {
-  id                     String                   @id @default(uuid())
-  studentCode            String                   @unique @map("student_code")
-  fullName               String                   @map("full_name")
-  institutionalEmail     String                   @unique @map("institutional_email")
+  id                     String                  @id @default(uuid())
+  studentCode            String                  @unique @map("student_code")
+  fullName               String                  @map("full_name")
+  institutionalEmail     String                  @unique @map("institutional_email")
   phone                  String?
-  publicDescription      String?                  @map("public_description")
-  photoUrl               String?                  @map("photo_url")
-  createdAt              DateTime                 @default(now()) @map("created_at")
-  updatedAt              DateTime                 @updatedAt @map("updated_at")
+  publicDescription      String?                 @map("public_description")
+  photoUrl               String?                 @map("photo_url")
+  createdAt              DateTime                @default(now()) @map("created_at")
+  updatedAt              DateTime                @updatedAt @map("updated_at")
   representativeMandates RepresentativeMandate[]
   leaders                Leader[]
   boardMandates          BoardMandate[]
@@ -195,19 +212,45 @@ model AttendanceSession {
 }
 
 model AttendanceRecord {
-  id                String             @id @default(uuid())
-  sessionId         String             @map("session_id")
-  session           AttendanceSession  @relation(fields: [sessionId], references: [id])
-  personId          String             @map("person_id")
-  person            Person             @relation(fields: [personId], references: [id])
+  id                String            @id @default(uuid())
+  sessionId         String            @map("session_id")
+  session           AttendanceSession @relation(fields: [sessionId], references: [id])
+  personId          String            @map("person_id")
+  person            Person            @relation(fields: [personId], references: [id])
   mode              AttendanceMode
-  timestamp         DateTime           @default(now())
+  timestamp         DateTime          @default(now())
   note              String?
-  recordedByAdminId String?            @map("recorded_by_admin_id")
-  recordedByAdmin   AdminUser?         @relation("attendance_records_recorder", fields: [recordedByAdminId], references: [id])
+  recordedByAdminId String?           @map("recorded_by_admin_id")
+  recordedByAdmin   AdminUser?        @relation("attendance_records_recorder", fields: [recordedByAdminId], references: [id])
 
   @@unique([sessionId, personId])
   @@index([sessionId])
   @@index([personId])
   @@map("attendance_records")
+}
+
+model News {
+  id            String     @id @default(uuid())
+  slug          String     @unique
+  title         String
+  content       String
+  status        NewsStatus @default(DRAFT)
+  publishedAt   DateTime?  @map("published_at")
+  coverPhotoUrl String?    @map("cover_photo_url")
+  createdAt     DateTime   @default(now()) @map("created_at")
+
+  @@map("news")
+}
+
+model PublicDocument {
+  id          String                 @id @default(uuid())
+  category    PublicDocumentCategory
+  title       String
+  description String?
+  pdfUrl      String                 @map("pdf_url")
+  publishedAt DateTime               @map("published_at")
+  status      PublicDocumentStatus   @default(PUBLISHED)
+  createdAt   DateTime               @default(now()) @map("created_at")
+
+  @@map("public_documents")
 }
