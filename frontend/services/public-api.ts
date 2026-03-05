@@ -18,6 +18,7 @@ export const publicApi = {
   homeEvents: () => fetchPublic('/events'),
   eventBySlug: (slug: string) => fetchPublic(`/events/${slug}`),
   homeNews: () => fetchPublic('/news'),
+  newsBySlug: (slug: string) => fetchPublic(`/news/${slug}`),
   homeDocuments: () => fetchPublic('/documents'),
   representatives: () => fetchPublic('/representation/active'),
   leaders: () => fetchPublic('/leaders/active'),

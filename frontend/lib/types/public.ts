@@ -63,6 +63,11 @@ export interface NewsSummary {
   publishedAt?: string | null;
 }
 
+export interface NewsDetail extends NewsSummary {
+  coverPhotoUrl?: string | null;
+  createdAt?: string;
+}
+
 export interface DocumentSummary {
   id: string;
   category: 'ESTATUTOS' | 'REGLAMENTOS' | 'LINEAMIENTOS' | 'COMUNICADOS';

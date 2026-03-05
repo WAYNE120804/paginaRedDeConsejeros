@@ -65,3 +65,9 @@ npm run dev
   - flechas de navegación
   - vista grande (lightbox)
 - Las imágenes usan rutas lógicas del backend (`/uploads/...`) construidas con `NEXT_PUBLIC_UPLOADS_BASE_URL`.
+
+
+## Avance 6D (noticias + markdown)
+- `/noticias/[slug]` ahora consume `GET /api/news/:slug`.
+- El detalle de noticia renderiza contenido markdown usando `react-markdown` con estilos tipográficos legibles.
+- Soporta portada (`coverPhotoUrl`) y rutas lógicas de uploads usando `NEXT_PUBLIC_UPLOADS_BASE_URL`.
