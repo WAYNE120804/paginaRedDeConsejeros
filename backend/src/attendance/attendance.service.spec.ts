@@ -3,7 +3,7 @@ import { AttendanceService } from './attendance.service';
 
 describe('AttendanceService', () => {
   const prisma = {
-    attendanceSession: { findUnique: jest.fn(), create: jest.fn() },
+    attendanceSession: { findUnique: jest.fn(), findMany: jest.fn(), create: jest.fn() },
     attendanceRecord: { create: jest.fn(), findMany: jest.fn() },
     person: { findUnique: jest.fn(), create: jest.fn() },
     event: { findFirst: jest.fn() },
@@ -74,6 +74,31 @@ describe('AttendanceService', () => {
 
     const buffer = await service.exportXlsx('s1');
     expect(Buffer.isBuffer(buffer)).toBe(true);
+  });
+
+
+  it('lista sesiones con filtros', async () => {
+    prisma.attendanceSession.findMany.mockResolvedValue([{ id: 's1', name: 'Asamblea marzo' }]);
+
+    const data = await service.listSessions({ q: 'asamblea', type: 'ASSEMBLY' } as any);
+
+    expect(data).toHaveLength(1);
+    expect(prisma.attendanceSession.findMany).toHaveBeenCalled();
+  });
+
+  it('registro QR hace trim al código', async () => {
+    const now = new Date();
+    prisma.attendanceSession.findUnique.mockResolvedValue({
+      id: 's1',
+      activeFrom: new Date(now.getTime() - 60_000),
+      activeUntil: new Date(now.getTime() + 60_000),
+    });
+    prisma.person.findUnique.mockResolvedValue({ id: 'p1' });
+    prisma.attendanceRecord.create.mockResolvedValue({ id: 'r1', timestamp: now });
+
+    await service.scanByToken('token', { studentCode: ' 2026 ' });
+
+    expect(prisma.person.findUnique).toHaveBeenCalledWith({ where: { studentCode: '2026' } });
   });
 
   it('scan retorna NOT_REGISTERED si persona no existe', async () => {

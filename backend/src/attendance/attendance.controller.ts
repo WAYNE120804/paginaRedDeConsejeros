@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Req, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query, Req, Res, UseGuards } from '@nestjs/common';
 import { Response } from 'express';
 import { AttendanceService } from './attendance.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
@@ -9,6 +9,7 @@ import { RequestWithUser } from '../common/interfaces/request-with-user.interfac
 import { CreateAttendanceSessionDto } from './dto/create-attendance-session.dto';
 import { ManualAttendanceDto } from './dto/manual-attendance.dto';
 import { ScanAttendanceDto } from './dto/scan-attendance.dto';
+import { ListAttendanceSessionsQueryDto } from './dto/list-attendance-sessions-query.dto';
 
 @Controller('attendance')
 export class AttendanceController {
@@ -19,6 +20,15 @@ export class AttendanceController {
   @Roles(AdminRole.SUPERADMIN, AdminRole.SECRETARIO)
   async createSession(@Body() dto: CreateAttendanceSessionDto, @Req() req: RequestWithUser) {
     const data = await this.attendanceService.createSession(dto, req.user.sub);
+    return { data, error: null };
+  }
+
+
+  @Get('sessions')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(AdminRole.SUPERADMIN, AdminRole.SECRETARIO)
+  async listSessions(@Query() query: ListAttendanceSessionsQueryDto) {
+    const data = await this.attendanceService.listSessions(query);
     return { data, error: null };
   }
 
