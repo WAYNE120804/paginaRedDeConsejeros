@@ -1,7 +1,7 @@
 'use client';
 
 import { useAdminAuth } from '@/hooks/use-admin-auth';
-import { LayoutDashboard, Users, Megaphone, FileText, CalendarDays } from 'lucide-react';
+import { LayoutDashboard, Users, Megaphone, FileText, CalendarDays, QrCode } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ReactNode } from 'react';
@@ -11,6 +11,7 @@ const adminLinks = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/admin/personas', label: 'Personas', icon: Users },
   { href: '/admin/eventos', label: 'Eventos', icon: CalendarDays },
+  { href: '/admin/asistencia', label: 'Asistencia', icon: QrCode },
   { href: '/admin/noticias', label: 'Noticias', icon: Megaphone },
   { href: '/admin/documentos', label: 'Documentos', icon: FileText },
 ];
