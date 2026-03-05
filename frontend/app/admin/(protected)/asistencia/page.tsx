@@ -34,6 +34,13 @@ type AttendanceRecord = {
   person: { fullName: string; studentCode: string; institutionalEmail: string };
 };
 
+const toIsoFromDatetimeLocal = (value: string) => {
+  if (!value) return '';
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return '';
+  return parsed.toISOString();
+};
+
 export default function AsistenciaAdminPage() {
   const { role } = useAdminAuth();
   const canManage = role === 'SUPERADMIN' || role === 'SECRETARIO';
@@ -47,8 +54,8 @@ export default function AsistenciaAdminPage() {
     type: 'ASSEMBLY',
     name: '',
     shortDescription: '',
-    activeFrom: '',
-    activeUntil: '',
+    activeFromLocal: '',
+    activeUntilLocal: '',
     allowManual: true,
   });
 
@@ -72,9 +79,21 @@ export default function AsistenciaAdminPage() {
   };
 
   const createSession = async () => {
+    const activeFrom = toIsoFromDatetimeLocal(createForm.activeFromLocal);
+    const activeUntil = toIsoFromDatetimeLocal(createForm.activeUntilLocal);
+
+    if (!activeFrom || !activeUntil) {
+      toast.error('Debes seleccionar fecha y hora válidas para la sesión.');
+      return;
+    }
+
     try {
       const response = await apiClient.post<Envelope<Session>>('/attendance/sessions', {
-        ...createForm,
+        type: createForm.type,
+        name: createForm.name.trim(),
+        shortDescription: createForm.shortDescription.trim(),
+        activeFrom,
+        activeUntil,
         allowManual: createForm.allowManual,
       });
       toast.success('Sesión de asistencia creada');
@@ -168,9 +187,17 @@ export default function AsistenciaAdminPage() {
           <Input placeholder="Nombre" value={createForm.name} onChange={(e) => setCreateForm((v) => ({ ...v, name: e.target.value }))} />
           <Input placeholder="Descripción corta" value={createForm.shortDescription} onChange={(e) => setCreateForm((v) => ({ ...v, shortDescription: e.target.value }))} />
           <label className="text-xs text-slate-500">Activa desde</label>
-          <Input type="datetime-local" value={createForm.activeFrom} onChange={(e) => setCreateForm((v) => ({ ...v, activeFrom: new Date(e.target.value).toISOString() }))} />
+          <Input
+            type="datetime-local"
+            value={createForm.activeFromLocal}
+            onChange={(e) => setCreateForm((v) => ({ ...v, activeFromLocal: e.target.value }))}
+          />
           <label className="text-xs text-slate-500">Activa hasta</label>
-          <Input type="datetime-local" value={createForm.activeUntil} onChange={(e) => setCreateForm((v) => ({ ...v, activeUntil: new Date(e.target.value).toISOString() }))} />
+          <Input
+            type="datetime-local"
+            value={createForm.activeUntilLocal}
+            onChange={(e) => setCreateForm((v) => ({ ...v, activeUntilLocal: e.target.value }))}
+          />
           <label className="flex items-center gap-2 text-sm text-slate-700"><input type="checkbox" checked={createForm.allowManual} onChange={(e) => setCreateForm((v) => ({ ...v, allowManual: e.target.checked }))} />Permitir registro manual</label>
           <Button className="bg-emerald-700 text-white" onClick={createSession}>Guardar sesión</Button>
         </div>
