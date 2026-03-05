@@ -32,6 +32,13 @@ export interface BoardMandate {
   person: PersonSummary;
 }
 
+export interface EventPhoto {
+  id: string;
+  photoUrl: string;
+  caption?: string | null;
+  sortOrder?: number;
+}
+
 export interface EventSummary {
   id: string;
   slug: string;
@@ -40,6 +47,12 @@ export interface EventSummary {
   date: string;
   location: string;
   computedStatus: 'PROXIMO' | 'EN_REALIZACION' | 'FINALIZADO';
+}
+
+export interface EventDetail extends EventSummary {
+  startTime: string;
+  endTime: string;
+  photos: EventPhoto[];
 }
 
 export interface NewsSummary {

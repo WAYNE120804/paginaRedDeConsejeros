@@ -51,3 +51,17 @@ npm run dev
   - `/eventos/[slug]` (6C)
   - `/noticias/[slug]` (6D)
   - `/perfil/[student_code]` (subfase de perfil)
+
+
+## Avance 6C (eventos + detalle + carrusel)
+- `/eventos/[slug]` ahora consume `GET /api/events/:slug` y muestra:
+  - título
+  - descripción
+  - fecha
+  - lugar
+  - galería de fotos
+- Carrusel implementado con:
+  - swipe en móvil
+  - flechas de navegación
+  - vista grande (lightbox)
+- Las imágenes usan rutas lógicas del backend (`/uploads/...`) construidas con `NEXT_PUBLIC_UPLOADS_BASE_URL`.

@@ -16,6 +16,7 @@ async function fetchPublic<T>(path: string): Promise<T> {
 
 export const publicApi = {
   homeEvents: () => fetchPublic('/events'),
+  eventBySlug: (slug: string) => fetchPublic(`/events/${slug}`),
   homeNews: () => fetchPublic('/news'),
   homeDocuments: () => fetchPublic('/documents'),
   representatives: () => fetchPublic('/representation/active'),
