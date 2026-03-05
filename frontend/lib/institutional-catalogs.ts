@@ -25,3 +25,11 @@ export const DEFAULT_BOARD_POSITIONS = [
 export function mergeDefaultWithDynamic(defaultValues: readonly string[], dynamicValues: string[]) {
   return Array.from(new Set([...defaultValues, ...dynamicValues.filter(Boolean)]));
 }
+
+
+export const DEFAULT_DOCUMENT_CATEGORIES = [
+  "ESTATUTOS",
+  "REGLAMENTOS",
+  "LINEAMIENTOS",
+  "COMUNICADOS",
+] as const;
