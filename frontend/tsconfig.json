@@ -1,7 +1,27 @@
 {
   "compilerOptions": {
     "target": "es5",
+<<<<<<< ours
+<<<<<<< ours
+<<<<<<< ours
+<<<<<<< ours
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+=======
     "lib": ["dom", "dom.iterable", "esnext"],
+>>>>>>> theirs
+=======
+    "lib": ["dom", "dom.iterable", "esnext"],
+>>>>>>> theirs
+=======
+    "lib": ["dom", "dom.iterable", "esnext"],
+>>>>>>> theirs
+=======
+    "lib": ["dom", "dom.iterable", "esnext"],
+>>>>>>> theirs
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -14,9 +34,49 @@
     "jsx": "preserve",
     "incremental": true,
     "paths": {
+<<<<<<< ours
+<<<<<<< ours
+<<<<<<< ours
+<<<<<<< ours
+      "@/*": [
+        "./*"
+      ]
+    },
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ]
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+=======
+=======
+>>>>>>> theirs
+=======
+>>>>>>> theirs
+=======
+>>>>>>> theirs
       "@/*": ["./*"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
   "exclude": ["node_modules"]
+<<<<<<< ours
+<<<<<<< ours
+<<<<<<< ours
+>>>>>>> theirs
+=======
+>>>>>>> theirs
+=======
+>>>>>>> theirs
+=======
+>>>>>>> theirs
 }
