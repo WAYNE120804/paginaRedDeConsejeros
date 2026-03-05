@@ -1,4 +1,4 @@
-# Frontend — Red de Consejeros (Subfase 6A)
+# Frontend — Red de Consejeros (Subfases 6A–6B)
 
 ## Instalación
 ```bash
@@ -36,3 +36,17 @@ npm run dev
 ## Guard de admin
 - `useAdminAuth` consulta `GET /auth/me` con cookies.
 - Si no hay sesión válida en rutas protegidas, redirige a `/admin/login`.
+
+
+## Avance 6B (páginas públicas básicas)
+- Home con hero y secciones públicas conectadas a API (`/events`, `/news`, `/documents`).
+- Listados públicos con filtros:
+  - `/representantes` (facultad + estamento)
+  - `/lideres` (facultad)
+  - `/documentos` (categoría)
+- Rutas públicas base implementadas:
+  - `/junta`, `/eventos`, `/noticias`
+- Rutas dinámicas preparadas con placeholder para próximas subfases:
+  - `/eventos/[slug]` (6C)
+  - `/noticias/[slug]` (6D)
+  - `/perfil/[student_code]` (subfase de perfil)
