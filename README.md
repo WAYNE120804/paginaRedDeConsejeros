@@ -139,3 +139,38 @@ curl -b cookies.txt -X POST http://localhost:3001/api/attendance/sessions/<SESSI
 ```bash
 curl -L -b cookies.txt http://localhost:3001/api/attendance/sessions/<SESSION_ID>/export.xlsx -o asistencia.xlsx
 ```
+
+## Troubleshooting rápido
+
+### 1) `Cannot GET /api`
+Ahora `GET /api` responde health-check JSON:
+
+```json
+{ "data": { "name": "red-consejeros-api", "status": "ok" }, "error": null }
+```
+
+Si no responde así, asegúrate de estar corriendo la última versión del backend.
+
+### 2) Error Prisma `P3006` / migración `20260305022348_`
+Si te aparece una migración como `20260305022348_` pero **no existe en este repo**, quedó un archivo local viejo.
+
+Pasos recomendados (desarrollo local):
+
+1. Verifica migraciones del repo:
+   - deben existir solo:
+     - `20260304235000_init`
+     - `20260305012000_phase2_data_model`
+     - `20260305100000_phase3_events_uploads`
+     - `20260305123000_phase4_attendance`
+
+2. Elimina carpeta local sobrante `backend/prisma/migrations/20260305022348_` (si existe).
+
+3. Reinicia estado local de migraciones en dev:
+```bash
+cd backend
+npx prisma migrate reset
+npx prisma migrate dev
+npx prisma generate
+```
+
+Si persiste, confirma que el `DATABASE_URL` apunta a `localhost:5434` y que no estás mezclando otra copia del proyecto.
