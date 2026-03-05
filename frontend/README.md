@@ -77,3 +77,15 @@ npm run dev
 - `/documentos` ahora ofrece filtros por categoría con valores institucionales por defecto + valores dinámicos del backend.
 - Se agregó búsqueda por título/descripción.
 - Cada documento incluye acción de descarga hacia `GET /api/documents/:id/download`.
+
+
+## Avance 6F (admin dashboard + CRUD principales)
+- Dashboard admin con tarjetas de acceso a módulos clave.
+- CRUD base implementado en admin para:
+  - `/admin/personas` (buscar + crear)
+  - `/admin/eventos` (crear + alternar visibilidad)
+  - `/admin/noticias` (crear + publicar/despublicar)
+  - `/admin/documentos` (subir PDF + archivar/publicar)
+- Se añadieron componentes reutilizables UI admin:
+  - `Button`, `Card`, `Input`, `Select`, `Badge`, `Tabs`, `Table`, `Modal`.
+- Enforzados permisos por rol en vistas admin para operaciones principales.

@@ -1,12 +1,12 @@
 import { env } from '@/lib/env';
 
 export class ApiClient {
-  async get<T>(path: string, init?: RequestInit): Promise<T> {
+  private async request<T>(path: string, init?: RequestInit): Promise<T> {
     const response = await fetch(`${env.apiBaseUrl}${path}`, {
       ...init,
       credentials: 'include',
       headers: {
-        'Content-Type': 'application/json',
+        ...(init?.body instanceof FormData ? {} : { 'Content-Type': 'application/json' }),
         ...(init?.headers ?? {}),
       },
       cache: 'no-store',
@@ -18,6 +18,26 @@ export class ApiClient {
     }
 
     return response.json() as Promise<T>;
+  }
+
+  get<T>(path: string, init?: RequestInit): Promise<T> {
+    return this.request<T>(path, { method: 'GET', ...init });
+  }
+
+  post<T>(path: string, body?: unknown, init?: RequestInit): Promise<T> {
+    return this.request<T>(path, {
+      method: 'POST',
+      body: body instanceof FormData ? body : JSON.stringify(body ?? {}),
+      ...init,
+    });
+  }
+
+  patch<T>(path: string, body?: unknown, init?: RequestInit): Promise<T> {
+    return this.request<T>(path, {
+      method: 'PATCH',
+      body: body instanceof FormData ? body : JSON.stringify(body ?? {}),
+      ...init,
+    });
   }
 }
 
