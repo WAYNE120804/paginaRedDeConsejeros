@@ -1,0 +1,11 @@
+node_modules
+**/node_modules
+**/.next
+**/dist
+**/coverage
+.env
+backend/.env
+npm-debug.log*
+# Logos raster locales (no subir binarios al repo)
+frontend/public/assets/logo-red.png
+frontend/public/assets/logo-umanizales.png
