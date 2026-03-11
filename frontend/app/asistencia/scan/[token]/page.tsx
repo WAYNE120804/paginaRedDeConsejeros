@@ -19,6 +19,18 @@ type ApiEnvelope<T> = {
   error: null | { message?: string };
 };
 
+
+const mapScanErrorMessage = (message?: string) => {
+  if (!message) return 'No fue posible registrar tu asistencia.';
+  if (message === 'SESSION_OUT_OF_WINDOW') {
+    return 'Esta sesión ya no está activa. El tiempo permitido para registrar asistencia ya pasó.';
+  }
+  if (message === 'NOT_REGISTERED') {
+    return 'Tu código estudiantil no existe en el sistema. Contacta al equipo administrativo para validarlo.';
+  }
+  return message;
+};
+
 export default function AttendanceScanPage() {
   const params = useParams<{ token: string }>();
   const token = params?.token;
@@ -56,7 +68,7 @@ export default function AttendanceScanPage() {
 
       const payload = (await response.json()) as ApiEnvelope<ScanResult>;
       if (!response.ok || payload.error) {
-        const message = payload.error?.message ?? 'No fue posible registrar tu asistencia.';
+        const message = mapScanErrorMessage(payload.error?.message);
         setError(message);
         return;
       }

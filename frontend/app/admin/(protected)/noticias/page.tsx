@@ -21,7 +21,7 @@ export default function NoticiasAdminPage() {
   const [items, setItems] = useState<NewsItem[]>([]);
   const [tab, setTab] = useState<'ALL' | 'DRAFT' | 'PUBLISHED'>('ALL');
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ slug: '', title: '', content: '', status: 'DRAFT' });
+  const [form, setForm] = useState({ title: '', content: '', status: 'DRAFT' });
 
   const load = async () => {
     try {
@@ -93,7 +93,6 @@ export default function NoticiasAdminPage() {
       <Modal open={open} onClose={() => setOpen(false)}>
         <h2 className="text-lg font-semibold text-slate-900">Nueva noticia</h2>
         <div className="mt-3 space-y-2">
-          <Input placeholder="Slug" value={form.slug} onChange={(e) => setForm((v) => ({ ...v, slug: e.target.value }))} />
           <Input placeholder="Título" value={form.title} onChange={(e) => setForm((v) => ({ ...v, title: e.target.value }))} />
           <textarea className="min-h-[140px] w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" placeholder="Contenido markdown" value={form.content} onChange={(e) => setForm((v) => ({ ...v, content: e.target.value }))} />
           <Button className="bg-emerald-700 text-white" onClick={create}>Guardar noticia</Button>

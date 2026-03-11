@@ -15,9 +15,10 @@ export class NewsService {
 
   async create(dto: CreateNewsDto, actorId: string) {
     try {
+      const slug = await this.resolveUniqueSlug(dto.slug, dto.title);
       const created = await this.prisma.news.create({
         data: {
-          slug: this.normalizeSlug(dto.slug),
+          slug,
           title: dto.title,
           content: dto.content,
           status: dto.status,
@@ -27,7 +28,7 @@ export class NewsService {
       await this.log(actorId, 'CREATE_NEWS', created.id, { slug: created.slug });
       return created;
     } catch {
-      throw new ConflictException('No se pudo crear la noticia. Verifica slug único.');
+      throw new ConflictException('No se pudo crear la noticia. Verifica datos y slug único.');
     }
   }
 
@@ -102,6 +103,28 @@ export class NewsService {
       .replace(/-+/g, '-');
     if (!slug) throw new BadRequestException('Slug inválido');
     return slug;
+  }
+
+  private buildSlugSeed(title: string, createdAt: Date) {
+    const dateText = createdAt.toISOString().slice(0, 10);
+    return this.normalizeSlug(`${title}-${dateText}`);
+  }
+
+  private async resolveUniqueSlug(rawSlug: string | undefined, title: string) {
+    if (rawSlug?.trim()) {
+      return this.normalizeSlug(rawSlug);
+    }
+
+    const base = this.buildSlugSeed(title, new Date());
+    let candidate = base;
+    let suffix = 2;
+
+    while (await this.prisma.news.findUnique({ where: { slug: candidate } })) {
+      candidate = `${base}-${suffix}`;
+      suffix += 1;
+    }
+
+    return candidate;
   }
 
   private async log(actorId: string, action: string, entityId: string, metadata: Prisma.InputJsonObject) {

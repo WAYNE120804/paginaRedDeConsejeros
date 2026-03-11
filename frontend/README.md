@@ -26,6 +26,8 @@ npm run dev
 - `lib/`: utilidades/env
 - `styles/`: estilos y tokens complementarios
 - `public/assets/`: logos institucionales en formato SVG (texto), compatible con revisiones/PR sin binarios.
+  - Si necesitas usar PNG/JPG localmente, guárdalos en `frontend/public/assets/` con los nombres `logo-red.png` y `logo-umanizales.png` para pruebas manuales.
+  - Esos dos archivos están en `.gitignore` para evitar alertas por binarios en PR.
 
 ## Rutas implementadas en 6A
 - Público: `/` + placeholders (`/eventos`, `/noticias`, `/documentos`, `/junta`, `/representantes`, `/lideres`)

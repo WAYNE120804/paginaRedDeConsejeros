@@ -2,8 +2,9 @@ import { NewsStatus } from '@prisma/client';
 import { IsEnum, IsOptional, IsString } from 'class-validator';
 
 export class CreateNewsDto {
+  @IsOptional()
   @IsString()
-  slug!: string;
+  slug?: string;
 
   @IsString()
   title!: string;

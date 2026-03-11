@@ -6,7 +6,7 @@ import { PageShell } from '@/components/ui/page-shell';
 import { DocumentSummary } from '@/lib/types/public';
 import { publicApi } from '@/services/public-api';
 import { useEffect, useMemo, useState } from 'react';
-import { FileText, Download } from 'lucide-react';
+import { FileText, Download, Eye } from 'lucide-react';
 import { env } from '@/lib/env';
 import { DEFAULT_DOCUMENT_CATEGORIES, mergeDefaultWithDynamic } from '@/lib/institutional-catalogs';
 
@@ -21,6 +21,7 @@ export default function DocumentsPage() {
   const [items, setItems] = useState<DocumentSummary[]>([]);
   const [category, setCategory] = useState('ALL');
   const [query, setQuery] = useState('');
+  const [previewDoc, setPreviewDoc] = useState<DocumentSummary | null>(null);
 
   useEffect(() => {
     publicApi.homeDocuments().then((data) => setItems(data as DocumentSummary[])).catch(() => setItems([]));
@@ -91,6 +92,13 @@ export default function DocumentsPage() {
                   <span className="rounded-lg bg-slate-100 p-2 text-slate-500">
                     <FileText size={16} />
                   </span>
+                  <button
+                    type="button"
+                    onClick={() => setPreviewDoc(doc)}
+                    className="inline-flex items-center gap-1 rounded-xl border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
+                  >
+                    <Eye size={14} /> Ver
+                  </button>
                   <a
                     href={`${env.apiBaseUrl}/documents/${doc.id}/download`}
                     target="_blank"
@@ -105,6 +113,28 @@ export default function DocumentsPage() {
           ))}
         </div>
       )}
+
+      {previewDoc ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4" role="dialog" aria-modal="true">
+          <div className="flex h-[90vh] w-full max-w-5xl flex-col rounded-2xl bg-white shadow-2xl">
+            <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
+              <p className="text-sm font-semibold text-slate-900">Vista previa: {previewDoc.title}</p>
+              <button
+                type="button"
+                onClick={() => setPreviewDoc(null)}
+                className="rounded-lg border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 transition hover:bg-slate-50"
+              >
+                Cerrar
+              </button>
+            </div>
+            <iframe
+              title={`Vista previa ${previewDoc.title}`}
+              src={`${env.apiBaseUrl}/documents/${previewDoc.id}/download`}
+              className="h-full w-full rounded-b-2xl"
+            />
+          </div>
+        </div>
+      ) : null}
     </PageShell>
   );
 }

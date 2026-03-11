@@ -289,7 +289,7 @@ export default function AsistenciaAdminPage() {
 
       <Table>
         <table className="min-w-full">
-          <thead><tr><Th>Nombre</Th><Th>Código</Th><Th>Correo</Th><Th>Modo</Th><Th>Timestamp</Th></tr></thead>
+          <thead><tr><Th>Nombre</Th><Th>Código</Th><Th>Correo</Th><Th>Modo</Th><Th>Fecha y hora</Th></tr></thead>
           <tbody>
             {records.map((record) => (
               <tr key={record.id} className="border-t border-slate-100">

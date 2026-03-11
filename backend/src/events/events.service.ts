@@ -22,10 +22,11 @@ export class EventsService {
 
   async create(dto: CreateEventDto, actorId: string) {
     try {
+      const slug = await this.resolveUniqueSlug(dto.slug, dto.title);
       const event = await this.prisma.event.create({
         data: {
           ...dto,
-          slug: this.normalizeSlug(dto.slug),
+          slug,
           date: new Date(dto.date),
         },
       });
@@ -33,7 +34,7 @@ export class EventsService {
       await this.log(actorId, 'CREATE_EVENT', event.id, { slug: event.slug });
       return this.withComputedStatus(event);
     } catch {
-      throw new ConflictException('No se pudo crear evento. Verifica que el slug sea único');
+      throw new ConflictException('No se pudo crear evento. Verifica datos y que el slug sea único');
     }
   }
 
@@ -157,6 +158,28 @@ export class EventsService {
 
     if (!slug) throw new BadRequestException('Slug inválido');
     return slug;
+  }
+
+  private buildSlugSeed(title: string, createdAt: Date) {
+    const dateText = createdAt.toISOString().slice(0, 10);
+    return this.normalizeSlug(`${title}-${dateText}`);
+  }
+
+  private async resolveUniqueSlug(rawSlug: string | undefined, title: string) {
+    if (rawSlug?.trim()) {
+      return this.normalizeSlug(rawSlug);
+    }
+
+    const base = this.buildSlugSeed(title, new Date());
+    let candidate = base;
+    let suffix = 2;
+
+    while (await this.prisma.event.findUnique({ where: { slug: candidate } })) {
+      candidate = `${base}-${suffix}`;
+      suffix += 1;
+    }
+
+    return candidate;
   }
 
   private withComputedStatus(event: Event & { photos?: unknown[] }) {

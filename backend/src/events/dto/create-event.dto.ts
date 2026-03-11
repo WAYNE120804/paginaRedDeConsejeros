@@ -1,9 +1,10 @@
 import { EventType, EventVisibility } from '@prisma/client';
-import { IsDateString, IsEnum, IsString, Matches } from 'class-validator';
+import { IsDateString, IsEnum, IsOptional, IsString, Matches } from 'class-validator';
 
 export class CreateEventDto {
+  @IsOptional()
   @IsString()
-  slug!: string;
+  slug?: string;
 
   @IsString()
   title!: string;

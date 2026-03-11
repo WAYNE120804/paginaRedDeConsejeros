@@ -20,7 +20,7 @@ export default function EventosAdminPage() {
   const canManage = role === 'SUPERADMIN' || role === 'SECRETARIO' || role === 'COMUNICACIONES';
   const [items, setItems] = useState<EventItem[]>([]);
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ slug: '', title: '', description: '', type: 'PUBLIC_EVENT', visibility: 'PUBLIC', date: '', startTime: '08:00', endTime: '10:00', location: '' });
+  const [form, setForm] = useState({ title: '', description: '', type: 'PUBLIC_EVENT', visibility: 'PUBLIC', date: '', startTime: '08:00', endTime: '10:00', location: '' });
 
   const load = async () => {
     try {
@@ -82,7 +82,6 @@ export default function EventosAdminPage() {
       <Modal open={open} onClose={() => setOpen(false)}>
         <h2 className="text-lg font-semibold text-slate-900">Crear evento</h2>
         <div className="mt-3 grid gap-2">
-          <Input placeholder="Slug" value={form.slug} onChange={(e) => setForm((v) => ({ ...v, slug: e.target.value }))} />
           <Input placeholder="Título" value={form.title} onChange={(e) => setForm((v) => ({ ...v, title: e.target.value }))} />
           <Input placeholder="Descripción" value={form.description} onChange={(e) => setForm((v) => ({ ...v, description: e.target.value }))} />
           <Input type="date" value={form.date} onChange={(e) => setForm((v) => ({ ...v, date: e.target.value }))} />

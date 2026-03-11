@@ -183,11 +183,11 @@ export class AttendanceService {
     try {
       ExcelJS = require('exceljs');
     } catch {
-      const lines = ['Nombre,Código,Correo,Rol actual,Timestamp,Modo'];
+      const lines = ['Nombre,Código,Correo,Rol actual,Fecha y hora,Modo'];
       for (const record of records) {
         const currentRole = await this.getCurrentRole(record.personId);
         lines.push(
-          `${record.person.fullName},${record.person.studentCode},${record.person.institutionalEmail},${currentRole},${record.timestamp.toISOString()},${record.mode}`,
+          `${record.person.fullName},${record.person.studentCode},${record.person.institutionalEmail},${currentRole},${this.formatDateTime(record.timestamp)},${record.mode}`,
         );
       }
       return Buffer.from(lines.join('\n'), 'utf-8');
@@ -200,7 +200,7 @@ export class AttendanceService {
       { header: 'Código', key: 'studentCode', width: 18 },
       { header: 'Correo', key: 'institutionalEmail', width: 30 },
       { header: 'Rol actual', key: 'currentRole', width: 20 },
-      { header: 'Timestamp', key: 'timestamp', width: 25 },
+      { header: 'Fecha y hora', key: 'timestamp', width: 25 },
       { header: 'Modo', key: 'mode', width: 12 },
     ];
 
@@ -211,7 +211,7 @@ export class AttendanceService {
         studentCode: record.person.studentCode,
         institutionalEmail: record.person.institutionalEmail,
         currentRole,
-        timestamp: record.timestamp.toISOString(),
+        timestamp: this.formatDateTime(record.timestamp),
         mode: record.mode,
       });
     }
@@ -265,6 +265,16 @@ export class AttendanceService {
     const session = await this.prisma.attendanceSession.findUnique({ where: { id: sessionId } });
     if (!session) throw new NotFoundException('Sesión no encontrada');
     return session;
+  }
+
+
+  private formatDateTime(date: Date): string {
+    return new Intl.DateTimeFormat('es-CO', {
+      dateStyle: 'short',
+      timeStyle: 'medium',
+      hour12: false,
+      timeZone: process.env.APP_TIMEZONE ?? 'America/Bogota',
+    }).format(date);
   }
 
   private async getCurrentRole(personId: string): Promise<string> {
