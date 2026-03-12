@@ -17,6 +17,14 @@ export class CreateRepresentativeMandateDto {
   startDate!: string;
 
   @IsOptional()
+  @IsDateString()
+  endDate?: string;
+
+  @IsOptional()
+  @IsString()
+  description?: string;
+
+  @IsOptional()
   @IsString()
   tshirtSize?: string;
 }

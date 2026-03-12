@@ -71,4 +71,17 @@ export class PeopleService {
       throw new ConflictException('No fue posible actualizar la persona (datos duplicados)');
     }
   }
+
+  async delete(id: string, actorId: string) {
+    await this.getById(id);
+    try {
+      await this.prisma.person.delete({ where: { id } });
+      await this.prisma.auditLog.create({
+        data: { actorAdminId: actorId, action: 'DELETE_PERSON', entity: 'PERSON', entityId: id, metadata: {} },
+      });
+      return { success: true };
+    } catch {
+      throw new ConflictException('No se puede eliminar: la persona tiene registros relacionados activos');
+    }
+  }
 }

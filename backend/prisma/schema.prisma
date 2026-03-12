@@ -99,6 +99,8 @@ model Person {
   fullName               String                  @map("full_name")
   institutionalEmail     String                  @unique @map("institutional_email")
   phone                  String?
+  birthday               DateTime?               @map("birthday")
+  tshirtSize             String?                 @map("tshirt_size")
   publicDescription      String?                 @map("public_description")
   photoUrl               String?                 @map("photo_url")
   createdAt              DateTime                @default(now()) @map("created_at")
@@ -112,17 +114,18 @@ model Person {
 }
 
 model RepresentativeMandate {
-  id         String        @id @default(uuid())
-  personId   String        @map("person_id")
-  person     Person        @relation(fields: [personId], references: [id])
-  estateType String        @map("estate_type")
-  faculty    String
-  program    String
-  startDate  DateTime      @map("start_date")
-  endDate    DateTime?     @map("end_date")
-  tshirtSize String?       @map("tshirt_size")
-  status     MandateStatus @default(ACTIVE)
-  createdAt  DateTime      @default(now()) @map("created_at")
+  id          String        @id @default(uuid())
+  personId    String        @map("person_id")
+  person      Person        @relation(fields: [personId], references: [id])
+  estateType  String        @map("estate_type")
+  faculty     String
+  program     String
+  description String?
+  startDate   DateTime      @map("start_date")
+  endDate     DateTime?     @map("end_date")
+  tshirtSize  String?       @map("tshirt_size")
+  status      MandateStatus @default(ACTIVE)
+  createdAt   DateTime      @default(now()) @map("created_at")
 
   @@index([personId])
   @@map("representative_mandates")

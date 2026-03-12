@@ -1,4 +1,4 @@
-import { Body, Controller, Param, Patch, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Req, UseGuards } from '@nestjs/common';
 import { AdminUsersService } from './admin-users.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
@@ -35,6 +35,13 @@ export class AdminUsersController {
   @Roles(AdminRole.SUPERADMIN)
   async disable(@Param('id') id: string, @Req() req: RequestWithUser) {
     const data = await this.adminUsersService.disable(id, req.user.sub);
+    return { data, error: null };
+  }
+
+  @Get()
+  @Roles(AdminRole.SUPERADMIN)
+  async findAll() {
+    const data = await this.adminUsersService.findAll();
     return { data, error: null };
   }
 }

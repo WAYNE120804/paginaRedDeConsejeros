@@ -39,6 +39,10 @@ export class ApiClient {
       ...init,
     });
   }
+
+  delete<T>(path: string, init?: RequestInit): Promise<T> {
+    return this.request<T>(path, { method: 'DELETE', ...init });
+  }
 }
 
 export const apiClient = new ApiClient();

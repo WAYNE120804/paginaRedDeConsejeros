@@ -73,4 +73,18 @@ export class AdminUsersService {
 
     return { success: true };
   }
+
+  async findAll() {
+    return this.prisma.adminUser.findMany({
+      select: {
+        id: true,
+        email: true,
+        role: true,
+        isActive: true,
+        createdAt: true,
+        lastLoginAt: true,
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
 }

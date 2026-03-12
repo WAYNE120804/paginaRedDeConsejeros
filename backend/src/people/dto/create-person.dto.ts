@@ -1,4 +1,4 @@
-import { IsEmail, IsOptional, IsString } from 'class-validator';
+import { IsDateString, IsEmail, IsOptional, IsString } from 'class-validator';
 
 export class CreatePersonDto {
   @IsString()
@@ -10,9 +10,16 @@ export class CreatePersonDto {
   @IsEmail()
   institutionalEmail!: string;
 
+  @IsString()
+  phone!: string;
+
+  @IsOptional()
+  @IsDateString()
+  birthday?: string;
+
   @IsOptional()
   @IsString()
-  phone?: string;
+  tshirtSize?: string;
 
   @IsOptional()
   @IsString()

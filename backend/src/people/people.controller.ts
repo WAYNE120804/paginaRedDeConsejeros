@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { PeopleService } from './people.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
@@ -35,6 +35,12 @@ export class PeopleController {
   @Patch(':id')
   async update(@Param('id') id: string, @Body() dto: UpdatePersonDto, @Req() req: RequestWithUser) {
     const data = await this.peopleService.update(id, dto, req.user.sub);
+    return { data, error: null };
+  }
+
+  @Delete(':id')
+  async delete(@Param('id') id: string, @Req() req: RequestWithUser) {
+    const data = await this.peopleService.delete(id, req.user.sub);
     return { data, error: null };
   }
 }

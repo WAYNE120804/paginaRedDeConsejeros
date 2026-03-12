@@ -31,6 +31,8 @@ export class RepresentationService {
           faculty: dto.faculty,
           program: dto.program,
           startDate: new Date(dto.startDate),
+          endDate: dto.endDate ? new Date(dto.endDate) : undefined,
+          description: dto.description,
           tshirtSize: dto.tshirtSize,
           status: MandateStatus.ACTIVE,
         },
@@ -94,5 +96,15 @@ export class RepresentationService {
       include: { person: true },
       orderBy: { startDate: 'desc' },
     });
+  }
+
+  async deleteMandate(id: string, actorId: string) {
+    const mandate = await this.prisma.representativeMandate.findUnique({ where: { id } });
+    if (!mandate) throw new NotFoundException('Mandato no encontrado');
+    await this.prisma.representativeMandate.delete({ where: { id } });
+    await this.prisma.auditLog.create({
+      data: { actorAdminId: actorId, action: 'DELETE_REPRESENTATIVE_MANDATE', entity: 'REPRESENTATIVE_MANDATE', entityId: id, metadata: {} },
+    });
+    return { success: true };
   }
 }

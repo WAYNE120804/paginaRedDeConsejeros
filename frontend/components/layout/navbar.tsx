@@ -8,6 +8,9 @@ import { useState } from 'react';
 
 const links = [
   { href: '/', label: 'Inicio' },
+  { href: '/representantes', label: 'Representantes' },
+  { href: '/lideres', label: 'Líderes' },
+  { href: '/junta', label: 'Junta Directiva' },
   { href: '/eventos', label: 'Eventos' },
   { href: '/noticias', label: 'Noticias' },
   { href: '/documentos', label: 'Documentos' },

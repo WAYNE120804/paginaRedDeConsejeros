@@ -74,4 +74,14 @@ export class BoardService {
       orderBy: { startDate: 'desc' },
     });
   }
+
+  async deleteMandate(id: string, actorId: string) {
+    const mandate = await this.prisma.boardMandate.findUnique({ where: { id } });
+    if (!mandate) throw new NotFoundException('Mandato de junta no encontrado');
+    await this.prisma.boardMandate.delete({ where: { id } });
+    await this.prisma.auditLog.create({
+      data: { actorAdminId: actorId, action: 'DELETE_BOARD_MANDATE', entity: 'BOARD_MANDATE', entityId: id, metadata: {} },
+    });
+    return { success: true };
+  }
 }

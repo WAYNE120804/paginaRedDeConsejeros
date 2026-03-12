@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Req, UseGuards } from '@nestjs/common';
 import { BoardService } from './board.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
@@ -9,18 +9,20 @@ import { CreateBoardMandateDto } from './dto/create-board-mandate.dto';
 import { CloseBoardMandateDto } from './dto/close-board-mandate.dto';
 
 @Controller('board')
-@UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(AdminRole.SUPERADMIN, AdminRole.SECRETARIO)
 export class BoardController {
   constructor(private readonly boardService: BoardService) {}
 
   @Post('mandates')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(AdminRole.SUPERADMIN, AdminRole.SECRETARIO)
   async create(@Body() dto: CreateBoardMandateDto, @Req() req: RequestWithUser) {
     const data = await this.boardService.create(dto, req.user.sub);
     return { data, error: null };
   }
 
   @Patch('mandates/:id/close')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(AdminRole.SUPERADMIN, AdminRole.SECRETARIO)
   async close(@Param('id') id: string, @Body() dto: CloseBoardMandateDto, @Req() req: RequestWithUser) {
     const data = await this.boardService.close(id, dto.endDate, req.user.sub);
     return { data, error: null };
@@ -35,6 +37,14 @@ export class BoardController {
   @Get('history/:personId')
   async history(@Param('personId') personId: string) {
     const data = await this.boardService.getHistory(personId);
+    return { data, error: null };
+  }
+
+  @Delete('mandates/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(AdminRole.SUPERADMIN, AdminRole.SECRETARIO)
+  async deleteMandate(@Param('id') id: string, @Req() req: RequestWithUser) {
+    const data = await this.boardService.deleteMandate(id, req.user.sub);
     return { data, error: null };
   }
 }

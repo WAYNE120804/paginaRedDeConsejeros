@@ -81,4 +81,14 @@ export class LeaderService {
       orderBy: { createdAt: 'desc' },
     });
   }
+
+  async delete(id: string, actorId: string) {
+    const leader = await this.prisma.leader.findUnique({ where: { id } });
+    if (!leader) throw new NotFoundException('Liderazgo no encontrado');
+    await this.prisma.leader.delete({ where: { id } });
+    await this.prisma.auditLog.create({
+      data: { actorAdminId: actorId, action: 'DELETE_LEADER', entity: 'LEADER', entityId: id, metadata: {} },
+    });
+    return { success: true };
+  }
 }
