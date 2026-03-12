@@ -4,17 +4,20 @@ import { EmptyState } from '@/components/public/empty-state';
 import { SectionHeading } from '@/components/public/section-heading';
 import { RepresentativeMandate } from '@/lib/types/public';
 import { publicApi } from '@/services/public-api';
+import { motion } from 'framer-motion';
 import { useEffect, useMemo, useState } from 'react';
 import { PageShell } from '@/components/ui/page-shell';
+import { SkeletonGrid } from '@/components/public/skeleton-grid';
 import { DEFAULT_ESTATE_TYPES, DEFAULT_FACULTIES, mergeDefaultWithDynamic } from '@/lib/institutional-catalogs';
 
 export default function RepresentativesPage() {
+  const [loading, setLoading] = useState(true);
   const [items, setItems] = useState<RepresentativeMandate[]>([]);
   const [faculty, setFaculty] = useState('ALL');
   const [estate, setEstate] = useState('ALL');
 
   useEffect(() => {
-    publicApi.representatives().then((data) => setItems(data as RepresentativeMandate[])).catch(() => setItems([]));
+    publicApi.representatives().then((data) => setItems(data as RepresentativeMandate[])).catch(() => setItems([])).finally(() => setLoading(false));
   }, []);
 
   const faculties = useMemo(
@@ -57,19 +60,21 @@ export default function RepresentativesPage() {
           ))}
         </select>
       </div>
-      {filtered.length === 0 ? (
+      {loading ? (
+        <SkeletonGrid items={4} />
+      ) : filtered.length === 0 ? (
         <EmptyState message="No hay representantes para este filtro." />
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
           {filtered.map((item) => (
-            <article key={item.id} className="rounded-2xl border border-emerald-100 bg-white p-5 shadow-sm">
+            <motion.article whileHover={{ y: -2 }} key={item.id} className="rounded-2xl border border-emerald-100 bg-white p-5 shadow-sm">
               <p className="text-xs uppercase tracking-wide text-emerald-700">{item.estateType}</p>
               <h3 className="mt-1 text-lg font-semibold text-slate-900">{item.person.fullName}</h3>
               <p className="text-sm text-slate-500">
                 {item.faculty} · {item.program}
               </p>
               <p className="mt-2 text-xs text-slate-400">{item.person.institutionalEmail}</p>
-            </article>
+            </motion.article>
           ))}
         </div>
       )}

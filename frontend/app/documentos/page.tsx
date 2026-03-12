@@ -5,10 +5,12 @@ import { SectionHeading } from '@/components/public/section-heading';
 import { PageShell } from '@/components/ui/page-shell';
 import { DocumentSummary } from '@/lib/types/public';
 import { publicApi } from '@/services/public-api';
+import { motion } from 'framer-motion';
 import { useEffect, useMemo, useState } from 'react';
 import { FileText, Download, Eye } from 'lucide-react';
 import { env } from '@/lib/env';
 import { DEFAULT_DOCUMENT_CATEGORIES, mergeDefaultWithDynamic } from '@/lib/institutional-catalogs';
+import { SkeletonGrid } from '@/components/public/skeleton-grid';
 
 const CATEGORY_LABEL: Record<DocumentSummary['category'], string> = {
   ESTATUTOS: 'Estatutos',
@@ -22,9 +24,14 @@ export default function DocumentsPage() {
   const [category, setCategory] = useState('ALL');
   const [query, setQuery] = useState('');
   const [previewDoc, setPreviewDoc] = useState<DocumentSummary | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    publicApi.homeDocuments().then((data) => setItems(data as DocumentSummary[])).catch(() => setItems([]));
+    publicApi
+      .homeDocuments()
+      .then((data) => setItems(data as DocumentSummary[]))
+      .catch(() => setItems([]))
+      .finally(() => setLoading(false));
   }, []);
 
   const categories = useMemo(
@@ -71,12 +78,14 @@ export default function DocumentsPage() {
         />
       </div>
 
-      {filtered.length === 0 ? (
+      {loading ? (
+        <SkeletonGrid items={6} columns="md:grid-cols-1" />
+      ) : filtered.length === 0 ? (
         <EmptyState message="No hay documentos para este filtro." />
       ) : (
         <div className="grid gap-3">
           {filtered.map((doc) => (
-            <article key={doc.id} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+            <motion.article whileHover={{ y: -2 }} key={doc.id} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <p className="text-sm font-semibold text-slate-900">{doc.title}</p>
@@ -109,7 +118,7 @@ export default function DocumentsPage() {
                   </a>
                 </div>
               </div>
-            </article>
+            </motion.article>
           ))}
         </div>
       )}

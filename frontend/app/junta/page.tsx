@@ -3,17 +3,20 @@
 import { EmptyState } from '@/components/public/empty-state';
 import { SectionHeading } from '@/components/public/section-heading';
 import { PageShell } from '@/components/ui/page-shell';
+import { SkeletonGrid } from '@/components/public/skeleton-grid';
 import { BoardMandate } from '@/lib/types/public';
 import { publicApi } from '@/services/public-api';
+import { motion } from 'framer-motion';
 import { useEffect, useMemo, useState } from 'react';
 import { DEFAULT_BOARD_POSITIONS, mergeDefaultWithDynamic } from '@/lib/institutional-catalogs';
 
 export default function BoardPage() {
+  const [loading, setLoading] = useState(true);
   const [items, setItems] = useState<BoardMandate[]>([]);
   const [position, setPosition] = useState('ALL');
 
   useEffect(() => {
-    publicApi.board().then((data) => setItems(data as BoardMandate[])).catch(() => setItems([]));
+    publicApi.board().then((data) => setItems(data as BoardMandate[])).catch(() => setItems([])).finally(() => setLoading(false));
   }, []);
 
   const positions = useMemo(
@@ -38,16 +41,18 @@ export default function BoardPage() {
         ))}
       </select>
 
-      {filtered.length === 0 ? (
+      {loading ? (
+        <SkeletonGrid items={4} />
+      ) : filtered.length === 0 ? (
         <EmptyState message="No hay cargos de junta activos en este momento." />
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
           {filtered.map((item) => (
-            <article key={item.id} className="rounded-2xl border border-emerald-100 bg-white p-5 shadow-sm">
+            <motion.article whileHover={{ y: -2 }} key={item.id} className="rounded-2xl border border-emerald-100 bg-white p-5 shadow-sm">
               <p className="text-xs font-semibold uppercase text-emerald-700">{item.position}</p>
               <h3 className="mt-1 text-lg font-semibold text-slate-900">{item.person.fullName}</h3>
               <p className="text-sm text-slate-500">{item.person.institutionalEmail}</p>
-            </article>
+            </motion.article>
           ))}
         </div>
       )}

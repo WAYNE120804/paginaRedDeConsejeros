@@ -91,3 +91,8 @@ npm run dev
 - Se añadieron componentes reutilizables UI admin:
   - `Button`, `Card`, `Input`, `Select`, `Badge`, `Tabs`, `Table`, `Modal`.
 - Enforzados permisos por rol en vistas admin para operaciones principales.
+
+## Avance 6H (polish final)
+- Se añadieron skeleton loaders reutilizables en listados públicos para mejorar percepción de carga.
+- Se agregaron micro-animaciones de hover (`framer-motion`) en cards de eventos, noticias, documentos, representantes, líderes y junta.
+- Ajustes responsive en grillas y estados vacíos para mantener consistencia visual en móvil/tablet/desktop.
