@@ -9,8 +9,10 @@ import { Button } from '@/components/ui/admin/button';
 import { Table, Td, Th } from '@/components/ui/admin/table';
 import { Modal } from '@/components/ui/admin/modal';
 import { useAdminAuth } from '@/hooks/use-admin-auth';
+import { WikiMediaManager } from '@/components/admin/wiki-media-manager';
+import { getFileUrl } from '@/lib/utils';
 
-type Person = { id: string; fullName: string; studentCode: string };
+type Person = { id: string; fullName: string; studentCode: string; photoUrl?: string };
 type BoardMandate = {
   id: string;
   position: string;
@@ -21,7 +23,7 @@ type BoardMandate = {
 };
 type Envelope<T> = { data: T; error: null | { message?: string } };
 
-const POSITIONS = ['PRESIDENTE', 'VICEPRESIDENTE', 'SECRETARIO', 'VOCAL'];
+const POSITIONS = ['PRESIDENTE', 'VICEPRESIDENTE', 'FISCAL', 'SECRETARIA_GENERAL', 'DIRECTOR_PLANEACION', 'JEFE_COMUNICACIONES'];
 
 const emptyPersonForm = {
   studentCode: '',
@@ -30,6 +32,7 @@ const emptyPersonForm = {
   phone: '',
   birthday: '',
   tshirtSize: '',
+  photoUrl: '',
 };
 
 export default function JuntaAdminPage() {
@@ -39,6 +42,7 @@ export default function JuntaAdminPage() {
   const [mandates, setMandates] = useState<BoardMandate[]>([]);
   const [openCreate, setOpenCreate] = useState(false);
   const [showNewPerson, setShowNewPerson] = useState(false);
+  const [openWiki, setOpenWiki] = useState(false);
 
   const [peopleSearch, setPeopleSearch] = useState('');
   const [peopleResults, setPeopleResults] = useState<Person[]>([]);
@@ -46,7 +50,7 @@ export default function JuntaAdminPage() {
 
   const [form, setForm] = useState({
     personId: '',
-    position: 'VOCAL',
+    position: 'PRESIDENTE',
     startDate: new Date().toISOString().split('T')[0],
   });
 
@@ -132,7 +136,7 @@ export default function JuntaAdminPage() {
 
   const resetModal = () => {
     setOpenCreate(false);
-    setForm({ personId: '', position: 'VOCAL', startDate: new Date().toISOString().split('T')[0] });
+    setForm({ personId: '', position: 'PRESIDENTE', startDate: new Date().toISOString().split('T')[0] });
     setPeopleSearch('');
     setPeopleResults([]);
     setSelectedPerson(null);
@@ -174,10 +178,13 @@ export default function JuntaAdminPage() {
                     <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${
                       m.position === 'PRESIDENTE' ? 'bg-amber-100 text-amber-800' :
                       m.position === 'VICEPRESIDENTE' ? 'bg-blue-100 text-blue-800' :
-                      m.position === 'SECRETARIO' ? 'bg-purple-100 text-purple-800' :
+                      m.position === 'FISCAL' ? 'bg-red-100 text-red-800' :
+                      m.position === 'SECRETARIA_GENERAL' ? 'bg-purple-100 text-purple-800' :
+                      m.position === 'DIRECTOR_PLANEACION' ? 'bg-indigo-100 text-indigo-800' :
+                      m.position === 'JEFE_COMUNICACIONES' ? 'bg-emerald-100 text-emerald-800' :
                       'bg-slate-100 text-slate-700'
                     }`}>
-                      {m.position}
+                      {m.position.replace('_', ' ')}
                     </span>
                   </Td>
                   <Td>{new Date(m.startDate).toLocaleDateString()}</Td>
@@ -237,7 +244,33 @@ export default function JuntaAdminPage() {
             <div className="border border-slate-200 rounded-xl p-4 space-y-3 bg-slate-50">
               <div className="flex justify-between">
                 <h3 className="text-sm font-semibold text-slate-700">Nueva persona</h3>
-                <button onClick={() => setShowNewPerson(false)} className="text-xs text-slate-500 underline">Cancelar</button>
+              </div>
+              <div className="flex items-center gap-4 py-2 border-b border-slate-100 mb-2">
+                <div className="w-16 h-16 rounded-full bg-slate-200 overflow-hidden flex-shrink-0 border-2 border-white shadow-sm">
+                    {personForm.photoUrl ? (
+                      <img src={getFileUrl(personForm.photoUrl)} className="w-full h-full object-cover" alt="Profile" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-slate-400 font-bold text-xl">
+                        {personForm.fullName?.charAt(0) || '?'}
+                      </div>
+                    )}
+                </div>
+                <div>
+                    <Button 
+                      className="bg-white border border-slate-200 text-slate-700 text-[10px] py-1 h-7"
+                      onClick={() => setOpenWiki(true)}
+                    >
+                      Cambiar Foto
+                    </Button>
+                    {personForm.photoUrl && (
+                      <button 
+                        onClick={() => setPersonForm(v => ({ ...v, photoUrl: '' }))}
+                        className="ml-2 text-[10px] text-red-500 underline"
+                      >
+                        Quitar
+                      </button>
+                    )}
+                </div>
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <Input placeholder="Código *" value={personForm.studentCode} onChange={e => setPersonForm(v => ({ ...v, studentCode: e.target.value }))} />
@@ -281,6 +314,17 @@ export default function JuntaAdminPage() {
 
           <Button className="bg-emerald-700 text-white w-full mt-2" onClick={createMandate}>Guardar Miembro</Button>
         </div>
+      </Modal>
+
+      <Modal open={openWiki} onClose={() => setOpenWiki(false)} className="max-w-4xl p-0 overflow-hidden">
+         <WikiMediaManager 
+            onClose={() => setOpenWiki(false)} 
+            selectionMode={true}
+            onSelect={(url) => {
+                setPersonForm(v => ({ ...v, photoUrl: url }));
+                setOpenWiki(false);
+            }}
+         />
       </Modal>
     </div>
   );

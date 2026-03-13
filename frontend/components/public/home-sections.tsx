@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { useEffect, useMemo, useState } from 'react';
 import { publicApi } from '@/services/public-api';
@@ -42,12 +43,14 @@ export function HomeSections() {
         ) : (
           <div className="grid gap-4 md:grid-cols-3">
             {nextEvents.map((event) => (
-              <motion.article whileHover={{ y: -2 }} key={event.id} className="rounded-2xl border border-emerald-100 bg-white p-5 shadow-sm">
-                <p className="text-xs font-semibold uppercase text-emerald-700">{event.computedStatus}</p>
-                <h3 className="mt-2 text-lg font-semibold text-slate-900">{event.title}</h3>
-                <p className="mt-1 line-clamp-2 text-sm text-slate-500">{event.description}</p>
-                <p className="mt-3 text-xs text-slate-400">{new Date(event.date).toLocaleDateString('es-CO')} · {event.location}</p>
-              </motion.article>
+              <Link href={`/eventos/${event.slug}`} key={event.id}>
+                <motion.article whileHover={{ y: -2 }} className="h-full rounded-2xl border border-emerald-100 bg-white p-5 shadow-sm transition hover:border-emerald-200">
+                  <p className="text-xs font-semibold uppercase text-emerald-700">{event.computedStatus}</p>
+                  <h3 className="mt-2 text-lg font-semibold text-slate-900">{event.title}</h3>
+                  <p className="mt-1 line-clamp-2 text-sm text-slate-500">{event.description}</p>
+                  <p className="mt-3 text-xs text-slate-400">{new Date(event.date).toLocaleDateString('es-CO')} · {event.location}</p>
+                </motion.article>
+              </Link>
             ))}
           </div>
         )}
@@ -62,10 +65,12 @@ export function HomeSections() {
         ) : (
           <div className="grid gap-4 md:grid-cols-3">
             {news.slice(0, 3).map((item) => (
-              <motion.article whileHover={{ y: -2 }} key={item.id} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                <h3 className="text-lg font-semibold text-slate-900">{item.title}</h3>
-                <p className="mt-2 line-clamp-3 text-sm text-slate-500">{item.content}</p>
-              </motion.article>
+              <Link href={`/noticias/${item.slug}`} key={item.id}>
+                <motion.article whileHover={{ y: -2 }} className="h-full rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-emerald-100">
+                  <h3 className="text-lg font-semibold text-slate-900">{item.title}</h3>
+                  <p className="mt-2 line-clamp-3 text-sm text-slate-500">{item.content}</p>
+                </motion.article>
+              </Link>
             ))}
           </div>
         )}

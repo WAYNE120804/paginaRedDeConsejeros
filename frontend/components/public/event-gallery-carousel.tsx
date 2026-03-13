@@ -3,12 +3,7 @@
 import { TouchEvent, useMemo, useState } from 'react';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { EventPhoto } from '@/lib/types/public';
-import { env } from '@/lib/env';
-
-function normalizeImageUrl(photoUrl: string) {
-  if (photoUrl.startsWith('http://') || photoUrl.startsWith('https://')) return photoUrl;
-  return `${env.uploadsBaseUrl}${photoUrl}`;
-}
+import { getFileUrl } from '@/lib/utils';
 
 export function EventGalleryCarousel({ photos }: { photos: EventPhoto[] }) {
   const ordered = useMemo(
@@ -48,7 +43,7 @@ export function EventGalleryCarousel({ photos }: { photos: EventPhoto[] }) {
         onTouchEnd={onTouchEnd}
       >
         <img
-          src={normalizeImageUrl(current.photoUrl)}
+          src={getFileUrl(current.photoUrl)}
           alt={current.caption ?? 'Foto del evento'}
           className="h-[260px] w-full cursor-zoom-in object-cover sm:h-[380px]"
           onClick={() => setViewerOpen(true)}
@@ -93,7 +88,7 @@ export function EventGalleryCarousel({ photos }: { photos: EventPhoto[] }) {
             <X size={20} />
           </button>
           <img
-            src={normalizeImageUrl(current.photoUrl)}
+            src={getFileUrl(current.photoUrl)}
             alt={current.caption ?? 'Foto ampliada'}
             className="max-h-[90vh] max-w-[92vw] rounded-xl object-contain"
           />

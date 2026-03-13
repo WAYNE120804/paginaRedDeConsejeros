@@ -21,8 +21,10 @@ enum MandateStatus {
 enum BoardPosition {
   PRESIDENTE
   VICEPRESIDENTE
-  SECRETARIO
-  VOCAL
+  FISCAL
+  SECRETARIA_GENERAL
+  DIRECTOR_PLANEACION
+  JEFE_COMUNICACIONES
 }
 
 enum EventType {
@@ -166,6 +168,7 @@ model Event {
   slug               String              @unique
   title              String
   description        String
+  content            String?
   type               EventType
   visibility         EventVisibility
   date               DateTime

@@ -6,6 +6,7 @@ import { Roles } from '../common/decorators/roles.decorator';
 import { AdminRole } from '../common/enums/admin-role.enum';
 import { CreateRepresentativeMandateDto } from './dto/create-representative-mandate.dto';
 import { CloseRepresentativeMandateDto } from './dto/close-representative-mandate.dto';
+import { UpdateRepresentativeMandateDto } from './dto/update-representative-mandate.dto';
 import { RequestWithUser } from '../common/interfaces/request-with-user.interface';
 
 @Controller('representation')
@@ -35,6 +36,18 @@ export class RepresentationController {
   @Get('active')
   async active() {
     const data = await this.representationService.getActive();
+    return { data, error: null };
+  }
+
+  @Patch('mandates/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(AdminRole.SUPERADMIN, AdminRole.SECRETARIO)
+  async updateMandate(
+    @Param('id') id: string,
+    @Body() dto: UpdateRepresentativeMandateDto,
+    @Req() req: RequestWithUser,
+  ) {
+    const data = await this.representationService.updateMandate(id, dto, req.user.sub);
     return { data, error: null };
   }
 

@@ -68,6 +68,12 @@ export class NewsService {
     return updated;
   }
 
+  async delete(id: string, actorId: string) {
+    const news = await this.ensureNews(id);
+    await this.prisma.news.delete({ where: { id } });
+    await this.log(actorId, 'DELETE_NEWS', id, { slug: news.slug });
+  }
+
   async list(userRole?: AdminRole) {
     return this.prisma.news.findMany({
       where: userRole ? {} : { status: NewsStatus.PUBLISHED },

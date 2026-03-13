@@ -52,6 +52,7 @@ export interface EventSummary {
 export interface EventDetail extends EventSummary {
   startTime: string;
   endTime: string;
+  content?: string | null;
   photos: EventPhoto[];
 }
 

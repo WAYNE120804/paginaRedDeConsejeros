@@ -2,6 +2,7 @@ import { BadRequestException, ConflictException, Injectable, NotFoundException }
 import { MandateStatus } from '@prisma/client';
 import { PrismaService } from '../database/prisma.service';
 import { CreateRepresentativeMandateDto } from './dto/create-representative-mandate.dto';
+import { UpdateRepresentativeMandateDto } from './dto/update-representative-mandate.dto';
 
 @Injectable()
 export class RepresentationService {
@@ -106,5 +107,31 @@ export class RepresentationService {
       data: { actorAdminId: actorId, action: 'DELETE_REPRESENTATIVE_MANDATE', entity: 'REPRESENTATIVE_MANDATE', entityId: id, metadata: {} },
     });
     return { success: true };
+  }
+
+  async updateMandate(id: string, dto: UpdateRepresentativeMandateDto, actorId: string) {
+    const mandate = await this.prisma.representativeMandate.findUnique({ where: { id } });
+    if (!mandate) throw new NotFoundException('Mandato no encontrado');
+
+    const updated = await this.prisma.representativeMandate.update({
+      where: { id },
+      data: {
+        ...dto,
+        startDate: dto.startDate ? new Date(dto.startDate) : undefined,
+        endDate: dto.endDate ? new Date(dto.endDate) : undefined,
+      },
+    });
+
+    await this.prisma.auditLog.create({
+      data: {
+        actorAdminId: actorId,
+        action: 'UPDATE_REPRESENTATIVE_MANDATE',
+        entity: 'REPRESENTATIVE_MANDATE',
+        entityId: id,
+        metadata: dto as any,
+      },
+    });
+
+    return updated;
   }
 }

@@ -3,6 +3,8 @@
 import { useEffect, useState, useMemo } from 'react';
 import { Navbar } from '@/components/layout/navbar';
 import { motion } from 'framer-motion';
+import { getFileUrl } from '@/lib/utils';
+import { Markdown } from '@/components/ui/markdown';
 
 type Person = { id: string; fullName: string; publicDescription?: string; photoUrl?: string };
 type Mandate = {
@@ -137,7 +139,7 @@ export default function RepresentantesPublicPage() {
                   <div className="flex-1 p-6 relative flex flex-col pt-12">
                     <div className="absolute -top-10 left-6 h-20 w-20 rounded-2xl border-4 border-white bg-slate-100 shadow-md overflow-hidden flex items-center justify-center">
                       {mandate.person?.photoUrl ? (
-                         <img src={mandate.person.photoUrl} alt="Foto" className="h-full w-full object-cover" />
+                         <img src={getFileUrl(mandate.person.photoUrl)} alt="Foto" className="h-full w-full object-cover" />
                       ) : (
                         <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-emerald-50 to-emerald-100 text-2xl font-bold text-emerald-600">
                           {mandate.person?.fullName.charAt(0)}
@@ -152,13 +154,15 @@ export default function RepresentantesPublicPage() {
                       <p className="mt-1 text-sm text-slate-600 font-medium">
                         {mandate.faculty}
                       </p>
-                      <p className="mt-2 text-xs text-slate-500 leading-relaxed line-clamp-2">
-                        {mandate.program}
-                      </p>
+                      <Markdown 
+                        content={mandate.program} 
+                        className="mt-2 text-xs text-slate-500 leading-relaxed line-clamp-2" 
+                      />
                       {mandate.description && (
-                        <p className="mt-2 text-xs font-semibold text-emerald-800 bg-emerald-50/50 p-2 rounded-lg border border-emerald-100/50">
-                          {mandate.description}
-                        </p>
+                        <Markdown 
+                          content={mandate.description} 
+                          className="mt-2 text-xs font-semibold text-emerald-800 bg-emerald-50/50 p-2 rounded-lg border border-emerald-100/50"
+                        />
                       )}
                     </div>
                     

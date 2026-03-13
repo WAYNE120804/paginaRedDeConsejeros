@@ -4,9 +4,11 @@ import { useEffect, useState, useMemo } from 'react';
 import { Navbar } from '@/components/layout/navbar';
 import { Footer } from '@/components/layout/footer';
 import { motion } from 'framer-motion';
+import { getFileUrl } from '@/lib/utils';
+import { Markdown } from '@/components/ui/markdown';
 
 type Person = { id: string; fullName: string; publicDescription?: string; photoUrl?: string };
-type BoardPosition = 'PRESIDENTE' | 'VICEPRESIDENTE' | 'SECRETARIO' | 'VOCAL';
+type BoardPosition = 'PRESIDENTE' | 'VICEPRESIDENTE' | 'FISCAL' | 'SECRETARIA_GENERAL' | 'DIRECTOR_PLANEACION' | 'JEFE_COMUNICACIONES';
 
 type BoardMandate = {
   id: string;
@@ -22,8 +24,10 @@ type Envelope<T> = { data: T; error: null | { message?: string } };
 const positionOrder: Record<BoardPosition, number> = {
   PRESIDENTE: 1,
   VICEPRESIDENTE: 2,
-  SECRETARIO: 3,
-  VOCAL: 4,
+  FISCAL: 3,
+  SECRETARIA_GENERAL: 4,
+  DIRECTOR_PLANEACION: 5,
+  JEFE_COMUNICACIONES: 6,
 };
 
 export default function JuntaPublicPage() {
@@ -95,7 +99,10 @@ export default function JuntaPublicPage() {
               {board.map((member, idx) => {
                 const isPresident = member.position === 'PRESIDENTE';
                 const isVice = member.position === 'VICEPRESIDENTE';
-                const isSec = member.position === 'SECRETARIO';
+                const isFiscal = member.position === 'FISCAL';
+                const isSecGen = member.position === 'SECRETARIA_GENERAL';
+                const isDirPla = member.position === 'DIRECTOR_PLANEACION';
+                const isComms = member.position === 'JEFE_COMUNICACIONES';
                 
                 return (
                   <motion.div 
@@ -111,10 +118,13 @@ export default function JuntaPublicPage() {
                     <div className={`p-5 text-center transition-colors ${
                       isPresident ? 'bg-gradient-to-r from-amber-400 to-amber-500 text-amber-950' :
                       isVice ? 'bg-gradient-to-r from-blue-400 to-blue-500 text-white' :
-                      isSec ? 'bg-gradient-to-r from-emerald-400 to-emerald-500 text-white' :
+                      isFiscal ? 'bg-gradient-to-r from-red-400 to-red-500 text-white' :
+                      isSecGen ? 'bg-gradient-to-r from-purple-400 to-purple-500 text-white' :
+                      isDirPla ? 'bg-gradient-to-r from-indigo-400 to-indigo-500 text-white' :
+                      isComms ? 'bg-gradient-to-r from-emerald-400 to-emerald-500 text-white' :
                       'bg-slate-100 text-slate-700'
                     }`}>
-                       <h3 className="font-bold tracking-[0.15em] text-xs uppercase">{member.position}</h3>
+                       <h3 className="font-bold tracking-[0.15em] text-xs uppercase">{member.position.replace('_', ' ')}</h3>
                     </div>
 
                     <div className="p-8 flex flex-col items-center flex-1 relative bg-white">
@@ -131,7 +141,7 @@ export default function JuntaPublicPage() {
                       }`}>
                         <div className="h-full w-full rounded-full overflow-hidden bg-white">
                           {member.person?.photoUrl ? (
-                            <img src={member.person.photoUrl} alt={member.person.fullName} className="h-full w-full object-cover" />
+                            <img src={getFileUrl(member.person.photoUrl)} alt={member.person.fullName} className="h-full w-full object-cover" />
                           ) : (
                             <div className={`flex h-full w-full items-center justify-center text-4xl font-black ${
                               isPresident ? 'text-amber-600 bg-amber-50' : 'text-slate-400 bg-slate-50'
@@ -147,9 +157,10 @@ export default function JuntaPublicPage() {
                           {member.person?.fullName}
                         </h4>
                           {member.person?.publicDescription ? (
-                            <p className="mt-3 text-sm text-slate-600 leading-relaxed line-clamp-4">
-                              {member.person.publicDescription}
-                            </p>
+                            <Markdown 
+                              content={member.person.publicDescription} 
+                              className="mt-3 text-sm text-slate-600 leading-relaxed line-clamp-4" 
+                            />
                           ) : (
                             <p className="mt-3 text-sm text-slate-400 italic">
                               Miembro designado de la junta directiva.

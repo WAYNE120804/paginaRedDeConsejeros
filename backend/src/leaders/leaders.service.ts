@@ -2,6 +2,7 @@ import { BadRequestException, ConflictException, Injectable, NotFoundException }
 import { MandateStatus } from '@prisma/client';
 import { PrismaService } from '../database/prisma.service';
 import { CreateLeaderDto } from './dto/create-leader.dto';
+import { UpdateLeaderDto } from './dto/update-leader.dto';
 
 @Injectable()
 export class LeaderService {
@@ -90,5 +91,30 @@ export class LeaderService {
       data: { actorAdminId: actorId, action: 'DELETE_LEADER', entity: 'LEADER', entityId: id, metadata: {} },
     });
     return { success: true };
+  }
+
+  async update(id: string, dto: UpdateLeaderDto, actorId: string) {
+    const leader = await this.prisma.leader.findUnique({ where: { id } });
+    if (!leader) throw new NotFoundException('Liderazgo no encontrado');
+
+    const updated = await this.prisma.leader.update({
+      where: { id },
+      data: {
+        ...dto,
+        startDate: dto.startDate ? new Date(dto.startDate) : undefined,
+      },
+    });
+
+    await this.prisma.auditLog.create({
+      data: {
+        actorAdminId: actorId,
+        action: 'UPDATE_LEADER',
+        entity: 'LEADER',
+        entityId: id,
+        metadata: dto as any,
+      },
+    });
+
+    return updated;
   }
 }

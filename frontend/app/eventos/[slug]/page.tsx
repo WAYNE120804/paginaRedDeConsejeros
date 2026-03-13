@@ -1,12 +1,13 @@
 'use client';
 
 import { EmptyState } from '@/components/public/empty-state';
-import { EventGalleryCarousel } from '@/components/public/event-gallery-carousel';
+import { EventGalleryMosaic } from '@/components/public/event-gallery-mosaic';
 import { SectionHeading } from '@/components/public/section-heading';
 import { PageShell } from '@/components/ui/page-shell';
 import { EventDetail } from '@/lib/types/public';
 import { publicApi } from '@/services/public-api';
 import { useEffect, useState } from 'react';
+import { Markdown } from '@/components/ui/markdown';
 
 export default function EventDetailPage({ params }: { params: { slug: string } }) {
   const [event, setEvent] = useState<EventDetail | null>(null);
@@ -35,11 +36,17 @@ export default function EventDetailPage({ params }: { params: { slug: string } }
               {new Date(event.date).toLocaleDateString('es-CO')} · {event.startTime} - {event.endTime}
             </p>
             <p className="mt-4 whitespace-pre-line text-slate-700">{event.description}</p>
+            
+            {event.content && (
+              <div className="mt-8 border-t border-slate-100 pt-6 text-slate-700 max-w-none">
+                <Markdown content={event.content} />
+              </div>
+            )}
           </section>
 
           <section>
-            <SectionHeading title="Galería del evento" subtitle="Desliza en móvil, usa flechas o abre en vista grande" />
-            <EventGalleryCarousel photos={event.photos ?? []} />
+            <SectionHeading title="Galería del evento" subtitle="Fotos y momentos destacados" />
+            <EventGalleryMosaic photos={event.photos ?? []} />
           </section>
         </div>
       ) : null}

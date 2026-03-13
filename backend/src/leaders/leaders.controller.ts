@@ -6,6 +6,7 @@ import { Roles } from '../common/decorators/roles.decorator';
 import { AdminRole } from '../common/enums/admin-role.enum';
 import { CreateLeaderDto } from './dto/create-leader.dto';
 import { DeactivateLeaderDto } from './dto/deactivate-leader.dto';
+import { UpdateLeaderDto } from './dto/update-leader.dto';
 import { RequestWithUser } from '../common/interfaces/request-with-user.interface';
 
 @Controller('leaders')
@@ -31,6 +32,14 @@ export class LeadersController {
   @Get('active')
   async active() {
     const data = await this.leaderService.getActive();
+    return { data, error: null };
+  }
+
+  @Patch(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(AdminRole.SUPERADMIN, AdminRole.SECRETARIO)
+  async update(@Param('id') id: string, @Body() dto: UpdateLeaderDto, @Req() req: RequestWithUser) {
+    const data = await this.leaderService.update(id, dto, req.user.sub);
     return { data, error: null };
   }
 

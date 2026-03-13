@@ -9,6 +9,8 @@ import { Button } from '@/components/ui/admin/button';
 import { Table, Td, Th } from '@/components/ui/admin/table';
 import { Modal } from '@/components/ui/admin/modal';
 import { useAdminAuth } from '@/hooks/use-admin-auth';
+import { WikiMediaManager } from '@/components/admin/wiki-media-manager';
+import { getFileUrl } from '@/lib/utils';
 
 type Person = {
   id: string;
@@ -19,6 +21,7 @@ type Person = {
   birthday?: string;
   tshirtSize?: string;
   publicDescription?: string;
+  photoUrl?: string;
 };
 
 type Envelope<T> = { data: T; error: null | { message?: string } };
@@ -31,6 +34,7 @@ const emptyForm = {
   birthday: '',
   tshirtSize: '',
   publicDescription: '',
+  photoUrl: '',
 };
 
 export default function PersonasAdminPage() {
@@ -42,6 +46,8 @@ export default function PersonasAdminPage() {
   const [openCreate, setOpenCreate] = useState(false);
   const [editTarget, setEditTarget] = useState<Person | null>(null);
   const [form, setForm] = useState(emptyForm);
+  const [openWiki, setOpenWiki] = useState(false);
+  const [wikiSelectionMode, setWikiSelectionMode] = useState(false);
 
   const load = async () => {
     try {
@@ -66,6 +72,7 @@ export default function PersonasAdminPage() {
       birthday: p.birthday ? p.birthday.split('T')[0] : '',
       tshirtSize: p.tshirtSize ?? '',
       publicDescription: p.publicDescription ?? '',
+      photoUrl: p.photoUrl ?? '',
     });
   };
 
@@ -109,6 +116,35 @@ export default function PersonasAdminPage() {
 
   const renderForm = () => (
     <div className="mt-3 space-y-3">
+      <div className="flex items-center gap-4 py-2 border-b border-slate-100 mb-2">
+         <div className="w-20 h-20 rounded-full bg-slate-200 overflow-hidden flex-shrink-0 border-2 border-white shadow-sm">
+            {form.photoUrl ? (
+              <img src={getFileUrl(form.photoUrl)} className="w-full h-full object-cover" alt="Profile" />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-slate-400 font-bold text-2xl">
+                {form.fullName?.charAt(0) || '?'}
+              </div>
+            )}
+         </div>
+         <div>
+            <Button 
+              className="bg-white border border-slate-200 text-slate-700 text-xs py-1"
+              onClick={() => { setWikiSelectionMode(true); setOpenWiki(true); }}
+            >
+              Cambiar Foto
+            </Button>
+            {form.photoUrl && (
+              <button 
+                onClick={() => setForm(v => ({ ...v, photoUrl: '' }))}
+                className="ml-2 text-xs text-red-500 underline"
+              >
+                Quitar
+              </button>
+            )}
+            <p className="text-[10px] text-slate-400 mt-1 uppercase tracking-wider font-semibold">Foto de Perfil</p>
+         </div>
+      </div>
+
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1">
           <label className="text-xs font-semibold text-slate-500">Código Estudiantil *</label>
@@ -153,6 +189,12 @@ export default function PersonasAdminPage() {
           value={form.publicDescription}
           onChange={(e) => setForm(v => ({ ...v, publicDescription: e.target.value }))}
         />
+        <div className="flex justify-end">
+            <button onClick={() => { setWikiSelectionMode(false); setOpenWiki(true); }} className="text-xs text-emerald-600 underline flex items-center gap-1">
+               <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+               Wiki Imagen
+            </button>
+        </div>
       </div>
       <Button className="bg-emerald-700 text-white w-full mt-1" onClick={save}>
         {editTarget ? 'Guardar cambios' : 'Crear persona'}
@@ -220,10 +262,25 @@ export default function PersonasAdminPage() {
         {renderForm()}
       </Modal>
 
-      {/* Modal Editar */}
       <Modal open={editTarget !== null} onClose={() => setEditTarget(null)} className="max-w-xl">
         <h2 className="text-lg font-semibold text-slate-900">Editar persona</h2>
         {renderForm()}
+      </Modal>
+
+      <Modal open={openWiki} onClose={() => setOpenWiki(false)} className="max-w-4xl p-0 overflow-hidden">
+         <WikiMediaManager 
+            onClose={() => setOpenWiki(false)} 
+            selectionMode={wikiSelectionMode}
+            onSelect={(url) => {
+              if (wikiSelectionMode) {
+                setForm(v => ({ ...v, photoUrl: url }));
+                setOpenWiki(false);
+              } else {
+                navigator.clipboard.writeText(`![imagen](${url})`);
+                toast.success('Link de imagen copiado');
+              }
+            }}
+         />
       </Modal>
     </div>
   );

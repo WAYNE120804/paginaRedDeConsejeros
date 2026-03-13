@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
 import { Request } from 'express';
@@ -54,5 +54,13 @@ export class NewsController {
   async uploadCover(@Param('id') id: string, @UploadedFile() file: any, @Req() req: RequestWithUser) {
     this.newsService.enforceRole(req.user.role);
     return { data: await this.newsService.uploadCover(id, file, req.user.sub), error: null };
+  }
+
+  @Delete(':id')
+  @UseGuards(JwtAuthGuard)
+  async remove(@Param('id') id: string, @Req() req: RequestWithUser) {
+    this.newsService.enforceRole(req.user.role);
+    await this.newsService.delete(id, req.user.sub);
+    return { data: { success: true }, error: null };
   }
 }
