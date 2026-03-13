@@ -9,7 +9,7 @@ import { useState } from 'react';
 const links = [
   { href: '/', label: 'Inicio' },
   { href: '/representantes', label: 'Representantes' },
-  { href: '/lideres', label: 'Líderes' },
+  { href: '/lideres', label: 'Lideres' },
   { href: '/junta', label: 'Junta Directiva' },
   { href: '/eventos', label: 'Eventos' },
   { href: '/noticias', label: 'Noticias' },
@@ -22,10 +22,16 @@ export function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-emerald-100 bg-white/95 backdrop-blur">
-      <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-4 sm:px-6">
-        <div className="flex items-center gap-3">
-          <Image src="/assets/logo-red.svg" alt="Logo Red de Consejeros" width={36} height={36} className="rounded-lg" />
-          <span className="text-sm font-semibold text-slate-800 sm:text-base">Red de Consejeros</span>
+      <div className="mx-auto flex h-24 w-full max-w-7xl items-center justify-between gap-4 px-4 sm:h-28 sm:px-6">
+        <div className="flex min-w-0 items-center gap-4">
+          <Image
+            src="/assets/logo-red-de-consejeros.png"
+            alt="Logo Red de Consejeros"
+            width={88}
+            height={88}
+            className="h-16 w-auto object-contain sm:h-20"
+          />
+          <span className="text-base font-semibold text-slate-800 sm:text-xl">Red de Consejeros</span>
         </div>
 
         <nav className="hidden items-center gap-6 md:flex">
@@ -36,19 +42,19 @@ export function Navbar() {
           ))}
         </nav>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <Image
-            src="/assets/logo-umanizales.svg"
+            src="/assets/logo-universidad-de-manizales.png"
             alt="Logo Universidad de Manizales"
-            width={36}
-            height={36}
-            className="hidden rounded-lg sm:block"
+            width={72}
+            height={72}
+            className="h-14 w-auto object-contain sm:h-16"
           />
           <button
             type="button"
             onClick={() => setOpen((prev) => !prev)}
             className="rounded-lg border border-emerald-100 p-2 text-slate-700 md:hidden"
-            aria-label="Abrir menú"
+            aria-label="Abrir menu"
           >
             {open ? <X size={18} /> : <Menu size={18} />}
           </button>

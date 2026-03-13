@@ -112,4 +112,40 @@ describe('AttendanceService', () => {
 
     await expect(service.scanByToken('token', { studentCode: '404' })).rejects.toBeInstanceOf(NotFoundException);
   });
+
+  it('scan crea persona si no existe y llegan los datos requeridos', async () => {
+    const now = new Date();
+    prisma.attendanceSession.findUnique.mockResolvedValue({
+      id: 's1',
+      activeFrom: new Date(now.getTime() - 60_000),
+      activeUntil: new Date(now.getTime() + 60_000),
+    });
+    prisma.person.findUnique.mockResolvedValue(null);
+    prisma.person.create.mockResolvedValue({ id: 'p2', studentCode: '9001' });
+    prisma.attendanceRecord.create.mockResolvedValue({ id: 'r2', timestamp: now });
+
+    const res = await service.scanByToken('token', {
+      studentCode: '9001',
+      fullName: 'Persona Nueva',
+      institutionalEmail: 'nueva@umanizales.edu.co',
+      phone: '3001234567',
+      position: 'Delegado',
+      organization: 'Red de Consejeros',
+    });
+
+    expect(res.success).toBe(true);
+    expect(prisma.person.create).toHaveBeenCalledWith({
+      data: {
+        studentCode: '9001',
+        fullName: 'Persona Nueva',
+        institutionalEmail: 'nueva@umanizales.edu.co',
+        phone: '3001234567',
+      },
+    });
+    expect(prisma.attendanceRecord.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        note: 'Cargo: Delegado | Entidad: Red de Consejeros',
+      }),
+    });
+  });
 });

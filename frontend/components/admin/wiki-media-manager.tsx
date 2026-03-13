@@ -139,7 +139,7 @@ export function WikiMediaManager({ onSelect, onClose, selectionMode }: WikiMedia
   const files = items.filter(item => item.type === 'file');
 
   return (
-    <div className="flex flex-col h-[700px] max-h-[90vh] w-full overflow-hidden bg-white rounded-2xl shadow-2xl border border-slate-200">
+    <div className="flex h-[min(700px,calc(100vh-4rem))] max-h-[calc(100vh-4rem)] w-full min-w-0 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between p-4 border-b bg-slate-50 gap-3 shrink-0">
         <div className="flex items-center space-x-3">
@@ -186,13 +186,13 @@ export function WikiMediaManager({ onSelect, onClose, selectionMode }: WikiMedia
       </div>
 
       {/* Main Content Area */}
-      <div className="flex flex-1 min-h-0 overflow-hidden">
+      <div className="flex min-h-0 flex-1 overflow-hidden">
         {/* Sidebar for Folders */}
-        <aside className="w-64 border-r border-slate-100 bg-slate-50 flex flex-col min-h-0 overflow-hidden shrink-0 hidden md:flex">
+        <aside className="hidden w-64 shrink-0 flex-col border-r border-slate-100 bg-slate-50 md:flex">
           <div className="p-3 border-b border-slate-100 bg-slate-50 items-center justify-between flex">
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Explorador</span>
           </div>
-              <div className="flex-1 overflow-y-auto p-2 space-y-1">
+              <div className="min-h-0 flex-1 overflow-y-auto p-2 space-y-1 scroll-modern">
                  <button 
                    onClick={() => load('')}
                    className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${currentPath === '' ? 'bg-emerald-50 text-emerald-700' : 'text-slate-600 hover:bg-white hover:text-slate-900'}`}
@@ -232,7 +232,7 @@ export function WikiMediaManager({ onSelect, onClose, selectionMode }: WikiMedia
         </aside>
 
         {/* Content Grid */}
-        <div className="flex-1 overflow-y-auto p-6 bg-white min-h-0">
+        <div className="min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto bg-white p-6 scroll-modern">
           {loading ? (
             <div className="flex flex-col items-center justify-center h-full space-y-3">
               <div className="animate-spin rounded-full h-10 w-10 border-4 border-slate-100 border-t-emerald-600"></div>
@@ -244,7 +244,7 @@ export function WikiMediaManager({ onSelect, onClose, selectionMode }: WikiMedia
               {folders.length > 0 && (
                 <div className="space-y-4">
                   <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1">Carpetas</h4>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
                     {folders.map((item) => (
                       <div 
                         key={item.id} 
@@ -287,7 +287,7 @@ export function WikiMediaManager({ onSelect, onClose, selectionMode }: WikiMedia
               {/* Files Section */}
               <div className="space-y-4">
                 <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1">Documentos e Imágenes</h4>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
                   {files.map((item) => (
                     <div 
                       key={item.id} 

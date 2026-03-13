@@ -45,6 +45,8 @@ export interface EventSummary {
   title: string;
   description: string;
   date: string;
+  startTime: string;
+  endTime: string;
   location: string;
   computedStatus: 'PROXIMO' | 'EN_REALIZACION' | 'FINALIZADO';
 }
@@ -62,6 +64,7 @@ export interface NewsSummary {
   title: string;
   content: string;
   publishedAt?: string | null;
+  coverPhotoUrl?: string | null;
 }
 
 export interface NewsDetail extends NewsSummary {

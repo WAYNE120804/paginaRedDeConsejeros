@@ -267,7 +267,7 @@ export default function PersonasAdminPage() {
         {renderForm()}
       </Modal>
 
-      <Modal open={openWiki} onClose={() => setOpenWiki(false)} className="max-w-4xl p-0 overflow-hidden">
+      <Modal open={openWiki} onClose={() => setOpenWiki(false)} className="max-w-6xl p-0 overflow-hidden">
          <WikiMediaManager 
             onClose={() => setOpenWiki(false)} 
             selectionMode={wikiSelectionMode}

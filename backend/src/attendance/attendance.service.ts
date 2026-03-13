@@ -154,15 +154,16 @@ export class AttendanceService {
       throw new BadRequestException('studentCode es requerido');
     }
 
-    const person = await this.prisma.person.findUnique({ where: { studentCode: normalizedStudentCode } });
+    let person = await this.prisma.person.findUnique({ where: { studentCode: normalizedStudentCode } });
     if (!person) {
-      throw new NotFoundException('NOT_REGISTERED');
+      person = await this.registerScanPerson(normalizedStudentCode, dto);
     }
 
     const record = await this.createRecord({
       sessionId: session.id,
       personId: person.id,
       mode: AttendanceMode.QR,
+      note: this.buildScanNote(dto),
     });
 
     return { success: true, recordId: record.id, timestamp: record.timestamp };
@@ -245,6 +246,38 @@ export class AttendanceService {
     } catch {
       throw new ConflictException('No se pudo crear persona. Código o correo ya existe');
     }
+  }
+
+  private async registerScanPerson(studentCode: string, dto: ScanAttendanceDto) {
+    const fullName = dto.fullName?.trim();
+    const institutionalEmail = dto.institutionalEmail?.trim().toLowerCase();
+    const phone = dto.phone?.trim() || undefined;
+
+    if (!fullName || !institutionalEmail) {
+      throw new NotFoundException('NOT_REGISTERED');
+    }
+
+    try {
+      return await this.prisma.person.create({
+        data: {
+          studentCode,
+          fullName,
+          institutionalEmail,
+          phone,
+        },
+      });
+    } catch {
+      throw new ConflictException('No se pudo crear persona. Código o correo ya existe');
+    }
+  }
+
+  private buildScanNote(dto: ScanAttendanceDto) {
+    const parts = [
+      dto.position?.trim() ? `Cargo: ${dto.position.trim()}` : null,
+      dto.organization?.trim() ? `Entidad: ${dto.organization.trim()}` : null,
+    ].filter(Boolean);
+
+    return parts.length > 0 ? parts.join(' | ') : undefined;
   }
 
   private async createRecord(input: {

@@ -23,3 +23,18 @@ export function resolveMarkdownImages(content: string | undefined | null): strin
     return `![${alt}](${getFileUrl(path)})`;
   });
 }
+
+export function getNewsExcerpt(content: string | undefined | null, maxLength = 180): string {
+  if (!content) return '';
+
+  const cleaned = content
+    .replace(/\[\[image\s+[^[\]]+\]\]/g, ' ')
+    .replace(/!\[[^\]]*\]\([^)]+\)/g, ' ')
+    .replace(/\[(.*?)\]\((.*?)\)/g, '$1')
+    .replace(/[#>*_`~-]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (cleaned.length <= maxLength) return cleaned;
+  return `${cleaned.slice(0, maxLength).trim()}...`;
+}

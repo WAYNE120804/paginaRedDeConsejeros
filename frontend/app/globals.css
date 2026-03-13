@@ -20,3 +20,30 @@ body {
   color: #0f172a;
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
 }
+
+.scroll-modern {
+  scrollbar-width: thin;
+  scrollbar-color: #94a3b8 transparent;
+}
+
+.scroll-modern::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.scroll-modern::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scroll-modern::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border: 2px solid transparent;
+  border-radius: 9999px;
+  background-clip: padding-box;
+}
+
+.scroll-modern::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}

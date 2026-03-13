@@ -260,7 +260,7 @@ export default function EventosAdminPage() {
                 </label>
               </div>
 
-              <div className="grid grid-cols-1 gap-4">
+              <div className="grid max-h-[22rem] grid-cols-1 gap-4 overflow-y-auto pr-2 scroll-modern">
                 {gallery.map(photo => (
                   <div key={photo.id} className="flex gap-3 items-start p-3 bg-slate-50 rounded-xl border border-slate-100 group">
                     <div className="w-24 h-24 rounded-lg overflow-hidden flex-shrink-0 border border-slate-200 bg-white">
@@ -316,7 +316,7 @@ export default function EventosAdminPage() {
         </div>
       </Modal>
 
-      <Modal open={openWiki} onClose={() => setOpenWiki(false)} className="max-w-4xl p-0 overflow-hidden">
+      <Modal open={openWiki} onClose={() => setOpenWiki(false)} className="max-w-6xl p-0 overflow-hidden">
         <WikiMediaManager onClose={() => setOpenWiki(false)} />
       </Modal>
     </div>
