@@ -84,6 +84,61 @@ export default function AsistenciaAdminPage() {
     institutionalEmail: '',
   });
 
+  const buildQrFileName = (sessionName: string) =>
+    `qr-${sessionName
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '') || 'sesion'}.png`;
+
+  const downloadQrCard = async () => {
+    if (!session?.qrDataUrl) return;
+
+    try {
+      const qrImage = new Image();
+      qrImage.crossOrigin = 'anonymous';
+
+      await new Promise<void>((resolve, reject) => {
+        qrImage.onload = () => resolve();
+        qrImage.onerror = () => reject(new Error('No se pudo preparar el QR para descarga'));
+        qrImage.src = session.qrDataUrl as string;
+      });
+
+      const canvas = document.createElement('canvas');
+      const context = canvas.getContext('2d');
+      if (!context) throw new Error('No se pudo generar la imagen');
+
+      const qrSize = 320;
+      const padding = 32;
+      const titleHeight = 72;
+      canvas.width = qrSize + padding * 2;
+      canvas.height = qrSize + padding * 2 + titleHeight;
+
+      context.fillStyle = '#f8fafc';
+      context.fillRect(0, 0, canvas.width, canvas.height);
+
+      context.fillStyle = '#0f172a';
+      context.font = 'bold 26px Segoe UI';
+      context.textAlign = 'center';
+      context.textBaseline = 'middle';
+
+      const title = session.name.length > 32 ? `${session.name.slice(0, 32)}...` : session.name;
+      context.fillText(title, canvas.width / 2, padding + titleHeight / 2 - 4);
+
+      context.fillStyle = '#ffffff';
+      context.fillRect(padding, padding + titleHeight, qrSize, qrSize);
+      context.drawImage(qrImage, padding, padding + titleHeight, qrSize, qrSize);
+
+      const link = document.createElement('a');
+      link.href = canvas.toDataURL('image/png');
+      link.download = buildQrFileName(session.name);
+      link.click();
+    } catch (error) {
+      toast.error((error as Error).message);
+    }
+  };
+
   const filtersQuery = useMemo(() => {
     const params = new URLSearchParams();
     if (filters.q.trim()) params.set('q', filters.q.trim());
@@ -280,8 +335,34 @@ export default function AsistenciaAdminPage() {
           <p className="mt-1 text-xs text-slate-400">
             {new Date(session.activeFrom).toLocaleString('es-CO')} - {new Date(session.activeUntil).toLocaleString('es-CO')}
           </p>
-          <p className="mt-2 text-sm text-slate-600">URL de escaneo: <span className="font-mono text-xs">{session.scanUrl ?? 'No disponible'}</span></p>
-          {session.qrDataUrl ? <img src={session.qrDataUrl} alt="QR asistencia" className="mt-3 h-36 w-36 rounded-lg border border-slate-200" /> : null}
+          <p className="mt-2 text-sm text-slate-600">
+            URL de escaneo:{' '}
+            {session.scanUrl ? (
+              <a
+                href={session.scanUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="font-mono text-xs text-emerald-700 underline underline-offset-4 hover:text-emerald-800"
+              >
+                {session.scanUrl}
+              </a>
+            ) : (
+              <span className="font-mono text-xs">No disponible</span>
+            )}
+          </p>
+          {session.qrDataUrl ? (
+            <div className="mt-4 inline-flex flex-col items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <p className="text-center text-sm font-semibold text-slate-800">{session.name}</p>
+              <img src={session.qrDataUrl} alt={`QR asistencia ${session.name}`} className="h-44 w-44 rounded-lg border border-slate-200 bg-white p-2" />
+              <button
+                type="button"
+                onClick={downloadQrCard}
+                className="rounded-xl bg-emerald-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-800"
+              >
+                Descargar QR
+              </button>
+            </div>
+          ) : null}
         </Card>
       ) : (
         <Card><p className="text-sm text-slate-500">Crea una sesión para habilitar QR, registro manual y exportación.</p></Card>
