@@ -1,5 +1,17 @@
 import { EventType, EventVisibility } from '@prisma/client';
-import { IsDateString, IsEnum, IsOptional, IsString, Matches } from 'class-validator';
+import { IsArray, IsDateString, IsEnum, IsOptional, IsString, Matches } from 'class-validator';
+
+class EventTimeSlotDto {
+  @Matches(/^([01]\d|2[0-3]):([0-5]\d)$/)
+  startTime!: string;
+
+  @Matches(/^([01]\d|2[0-3]):([0-5]\d)$/)
+  endTime!: string;
+
+  @IsOptional()
+  @IsString()
+  label?: string;
+}
 
 export class UpdateEventDto {
   @IsOptional()
@@ -37,6 +49,10 @@ export class UpdateEventDto {
   @IsOptional()
   @Matches(/^([01]\d|2[0-3]):([0-5]\d)$/)
   endTime?: string;
+
+  @IsOptional()
+  @IsArray()
+  timeSlots?: EventTimeSlotDto[];
 
   @IsOptional()
   @IsString()

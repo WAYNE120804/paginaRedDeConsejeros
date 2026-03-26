@@ -105,6 +105,8 @@ model Person {
   tshirtSize             String?                 @map("tshirt_size")
   publicDescription      String?                 @map("public_description")
   photoUrl               String?                 @map("photo_url")
+  instagramUrl           String?                 @map("instagram_url")
+  instagramLabel         String?                 @map("instagram_label")
   createdAt              DateTime                @default(now()) @map("created_at")
   updatedAt              DateTime                @updatedAt @map("updated_at")
   representativeMandates RepresentativeMandate[]
@@ -174,6 +176,7 @@ model Event {
   date               DateTime
   startTime          String              @map("start_time")
   endTime            String              @map("end_time")
+  timeSlots          Json?               @map("time_slots")
   location           String
   createdAt          DateTime            @default(now()) @map("created_at")
   deletedAt          DateTime?           @map("deleted_at")

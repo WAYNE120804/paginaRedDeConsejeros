@@ -26,6 +26,14 @@ export class UpdatePersonDto {
   photoUrl?: string;
 
   @IsOptional()
+  @IsString()
+  instagramUrl?: string;
+
+  @IsOptional()
+  @IsString()
+  instagramLabel?: string;
+
+  @IsOptional()
   @IsDateString()
   birthday?: string;
 

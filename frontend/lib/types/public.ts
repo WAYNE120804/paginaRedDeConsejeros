@@ -5,6 +5,8 @@ export interface PersonSummary {
   institutionalEmail: string;
   publicDescription?: string | null;
   photoUrl?: string | null;
+  instagramUrl?: string | null;
+  instagramLabel?: string | null;
 }
 
 export interface RepresentativeMandate {
@@ -12,7 +14,10 @@ export interface RepresentativeMandate {
   estateType: string;
   faculty: string;
   program: string;
+  description?: string | null;
   startDate: string;
+  endDate?: string | null;
+  status?: 'ACTIVE' | 'ENDED';
   person: PersonSummary;
 }
 
@@ -22,6 +27,8 @@ export interface Leader {
   program: string;
   description?: string | null;
   startDate: string;
+  endDate?: string | null;
+  isActive?: boolean;
   person: PersonSummary;
 }
 
@@ -29,6 +36,8 @@ export interface BoardMandate {
   id: string;
   position: string;
   startDate: string;
+  endDate?: string | null;
+  isActive?: boolean;
   person: PersonSummary;
 }
 
@@ -39,6 +48,12 @@ export interface EventPhoto {
   sortOrder?: number;
 }
 
+export interface EventTimeSlot {
+  startTime: string;
+  endTime: string;
+  label?: string | null;
+}
+
 export interface EventSummary {
   id: string;
   slug: string;
@@ -47,6 +62,7 @@ export interface EventSummary {
   date: string;
   startTime: string;
   endTime: string;
+  timeSlots?: EventTimeSlot[];
   location: string;
   computedStatus: 'PROXIMO' | 'EN_REALIZACION' | 'FINALIZADO';
 }

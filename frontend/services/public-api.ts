@@ -1,4 +1,5 @@
 import { env } from '@/lib/env';
+import type { BoardMandate, Leader, RepresentativeMandate } from '@/lib/types/public';
 
 interface ApiEnvelope<T> {
   data: T;
@@ -20,7 +21,10 @@ export const publicApi = {
   homeNews: () => fetchPublic('/news'),
   newsBySlug: (slug: string) => fetchPublic(`/news/${slug}`),
   homeDocuments: () => fetchPublic('/documents'),
-  representatives: () => fetchPublic('/representation/active'),
-  leaders: () => fetchPublic('/leaders/active'),
-  board: () => fetchPublic('/board/active'),
+  representatives: () => fetchPublic<RepresentativeMandate[]>('/representation/active'),
+  representativeHistory: (personId: string) => fetchPublic<RepresentativeMandate[]>(`/representation/history/${personId}`),
+  leaders: () => fetchPublic<Leader[]>('/leaders/active'),
+  leaderHistory: (personId: string) => fetchPublic<Leader[]>(`/leaders/history/${personId}`),
+  board: () => fetchPublic<BoardMandate[]>('/board/active'),
+  boardHistory: (personId: string) => fetchPublic<BoardMandate[]>(`/board/history/${personId}`),
 };

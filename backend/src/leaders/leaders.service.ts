@@ -83,6 +83,14 @@ export class LeaderService {
     });
   }
 
+  async getHistory(personId: string) {
+    return this.prisma.leader.findMany({
+      where: { personId },
+      include: { person: true },
+      orderBy: { startDate: 'desc' },
+    });
+  }
+
   async delete(id: string, actorId: string) {
     const leader = await this.prisma.leader.findUnique({ where: { id } });
     if (!leader) throw new NotFoundException('Liderazgo no encontrado');

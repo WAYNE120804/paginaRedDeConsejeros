@@ -10,14 +10,7 @@ import { EmptyState } from './empty-state';
 import { SectionHeading } from './section-heading';
 import { SkeletonGrid } from './skeleton-grid';
 import { getFileUrl, getNewsExcerpt } from '@/lib/utils';
-
-function getEventStart(event: EventSummary) {
-  return new Date(`${event.date.slice(0, 10)}T${event.startTime}:00`);
-}
-
-function getEventEnd(event: EventSummary) {
-  return new Date(`${event.date.slice(0, 10)}T${event.endTime}:00`);
-}
+import { formatEventSlot, getEventEnd, getEventTimeSlots, getNextEventMoment } from '@/lib/event-time';
 
 function scrollContainer(ref: React.RefObject<HTMLDivElement>, direction: 'left' | 'right') {
   if (!ref.current) return;
@@ -52,24 +45,29 @@ export function HomeSections() {
 
   const nextEvents = useMemo(() => {
     const now = new Date();
+
     return [...events]
       .filter((event) => getEventEnd(event) >= now && event.computedStatus !== 'FINALIZADO')
-      .sort((a, b) => getEventStart(a).getTime() - getEventStart(b).getTime());
+      .sort(
+        (a, b) =>
+          (getNextEventMoment(a, now)?.getTime() ?? Number.MAX_SAFE_INTEGER) -
+          (getNextEventMoment(b, now)?.getTime() ?? Number.MAX_SAFE_INTEGER),
+      );
   }, [events]);
 
   const latestNews = useMemo(() => news.slice(0, 10), [news]);
 
   return (
     <div className="mt-10 grid gap-8">
-      <section>
+      <section className="rounded-[2rem] border border-white/60 bg-white/85 p-6 shadow-[0_18px_60px_rgba(15,23,42,0.08)] backdrop-blur-sm sm:p-8">
         <div className="mb-4 flex items-end justify-between gap-4">
-          <SectionHeading title="Próximos eventos" subtitle="Agenda pública de la Red de Consejeros" />
+          <SectionHeading title="Proximos eventos" subtitle="Agenda publica de la Red de Consejeros" />
           {nextEvents.length > 0 ? (
             <div className="flex gap-2">
               <button
                 type="button"
                 onClick={() => scrollContainer(eventsRef, 'left')}
-                className="rounded-full border border-slate-200 bg-white p-2 text-slate-600 transition hover:border-emerald-200 hover:text-emerald-700"
+                className="rounded-full border border-emerald-100 bg-emerald-50 p-2 text-emerald-700 transition hover:border-amber-300 hover:text-emerald-900"
                 aria-label="Mover eventos hacia la izquierda"
               >
                 <ChevronLeft size={18} />
@@ -77,7 +75,7 @@ export function HomeSections() {
               <button
                 type="button"
                 onClick={() => scrollContainer(eventsRef, 'right')}
-                className="rounded-full border border-slate-200 bg-white p-2 text-slate-600 transition hover:border-emerald-200 hover:text-emerald-700"
+                className="rounded-full border border-emerald-100 bg-emerald-50 p-2 text-emerald-700 transition hover:border-amber-300 hover:text-emerald-900"
                 aria-label="Mover eventos hacia la derecha"
               >
                 <ChevronRight size={18} />
@@ -89,18 +87,21 @@ export function HomeSections() {
         {loading ? (
           <SkeletonGrid items={3} columns="md:grid-cols-3" />
         ) : nextEvents.length === 0 ? (
-          <EmptyState message="No hay eventos próximos publicados por ahora." />
+          <EmptyState message="No hay eventos proximos publicados por ahora." />
         ) : (
-          <div ref={eventsRef} className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2 scroll-modern">
+          <div ref={eventsRef} className="scroll-modern flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2">
             {nextEvents.map((event) => (
               <Link href={`/eventos/${event.slug}`} key={event.id} className="block min-w-[320px] flex-[0_0_320px] snap-start">
-                <motion.article whileHover={{ y: -2 }} className="h-full rounded-2xl border border-emerald-100 bg-white p-5 shadow-sm transition hover:border-emerald-200">
-                  <p className="text-xs font-semibold uppercase text-emerald-700">{event.computedStatus}</p>
+                <motion.article whileHover={{ y: -4 }} className="h-full rounded-[1.7rem] border border-emerald-100 bg-[linear-gradient(180deg,#ffffff,#f8fff8)] p-5 shadow-sm transition hover:border-amber-300/80 hover:shadow-[0_20px_45px_rgba(0,102,51,0.1)]">
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700">{event.computedStatus}</p>
                   <h3 className="mt-2 text-lg font-semibold text-slate-900">{event.title}</h3>
                   <p className="mt-1 line-clamp-2 text-sm text-slate-500">{event.description}</p>
-                  <p className="mt-3 text-xs text-slate-400">
-                    {new Date(event.date).toLocaleDateString('es-CO')} · {event.location}
-                  </p>
+                  <p className="mt-3 text-xs text-slate-400">{new Date(event.date).toLocaleDateString('es-CO')} - {event.location}</p>
+                  <div className="mt-2 space-y-1 text-xs text-slate-500">
+                    {getEventTimeSlots(event).map((slot, index) => (
+                      <p key={`${event.id}-slot-${index}`}>{formatEventSlot(slot)}</p>
+                    ))}
+                  </div>
                 </motion.article>
               </Link>
             ))}
@@ -108,15 +109,15 @@ export function HomeSections() {
         )}
       </section>
 
-      <section>
+      <section className="rounded-[2rem] border border-white/60 bg-white/85 p-6 shadow-[0_18px_60px_rgba(15,23,42,0.08)] backdrop-blur-sm sm:p-8">
         <div className="mb-4 flex items-end justify-between gap-4">
-          <SectionHeading title="Últimas noticias" subtitle="Información institucional para la comunidad" />
+          <SectionHeading title="Ultimas noticias" subtitle="Informacion institucional para la comunidad" />
           {latestNews.length > 0 ? (
             <div className="flex gap-2">
               <button
                 type="button"
                 onClick={() => scrollContainer(newsRef, 'left')}
-                className="rounded-full border border-slate-200 bg-white p-2 text-slate-600 transition hover:border-emerald-200 hover:text-emerald-700"
+                className="rounded-full border border-emerald-100 bg-emerald-50 p-2 text-emerald-700 transition hover:border-amber-300 hover:text-emerald-900"
                 aria-label="Mover noticias hacia la izquierda"
               >
                 <ChevronLeft size={18} />
@@ -124,7 +125,7 @@ export function HomeSections() {
               <button
                 type="button"
                 onClick={() => scrollContainer(newsRef, 'right')}
-                className="rounded-full border border-slate-200 bg-white p-2 text-slate-600 transition hover:border-emerald-200 hover:text-emerald-700"
+                className="rounded-full border border-emerald-100 bg-emerald-50 p-2 text-emerald-700 transition hover:border-amber-300 hover:text-emerald-900"
                 aria-label="Mover noticias hacia la derecha"
               >
                 <ChevronRight size={18} />
@@ -136,12 +137,12 @@ export function HomeSections() {
         {loading ? (
           <SkeletonGrid items={3} columns="md:grid-cols-3" />
         ) : latestNews.length === 0 ? (
-          <EmptyState message="No hay noticias publicadas aún." />
+          <EmptyState message="No hay noticias publicadas aun." />
         ) : (
-          <div ref={newsRef} className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2 scroll-modern">
+          <div ref={newsRef} className="scroll-modern flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2">
             {latestNews.map((item) => (
               <Link href={`/noticias/${item.slug}`} key={item.id} className="block min-w-[320px] flex-[0_0_320px] snap-start">
-                <motion.article whileHover={{ y: -2 }} className="h-full overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:border-emerald-100">
+                <motion.article whileHover={{ y: -4 }} className="h-full overflow-hidden rounded-[1.7rem] border border-slate-200 bg-white shadow-sm transition hover:border-amber-300/70 hover:shadow-[0_20px_45px_rgba(0,102,51,0.08)]">
                   {item.coverPhotoUrl ? (
                     <img
                       src={getFileUrl(item.coverPhotoUrl)}
@@ -160,18 +161,18 @@ export function HomeSections() {
         )}
       </section>
 
-      <section>
-        <SectionHeading title="Documentos públicos destacados" />
+      <section className="rounded-[2rem] border border-white/60 bg-white/85 p-6 shadow-[0_18px_60px_rgba(15,23,42,0.08)] backdrop-blur-sm sm:p-8">
+        <SectionHeading title="Documentos publicos destacados" />
         {loading ? (
           <SkeletonGrid items={4} columns="md:grid-cols-2" />
         ) : documents.length === 0 ? (
-          <EmptyState message="Aún no se han publicado documentos." />
+          <EmptyState message="Aun no se han publicado documentos." />
         ) : (
           <div className="grid gap-3">
             {documents.slice(0, 4).map((doc) => (
-              <motion.article whileHover={{ y: -2 }} key={doc.id} className="rounded-xl border border-slate-200 bg-white p-4 text-sm shadow-sm">
+              <motion.article whileHover={{ y: -3 }} key={doc.id} className="rounded-2xl border border-slate-200 bg-[linear-gradient(180deg,#ffffff,#fbfdf7)] p-4 text-sm shadow-sm transition hover:border-amber-300/70">
                 <p className="font-semibold text-slate-800">{doc.title}</p>
-                <p className="mt-1 text-xs uppercase tracking-wide text-emerald-700">{doc.category}</p>
+                <p className="mt-1 text-xs uppercase tracking-[0.2em] text-emerald-700">{doc.category}</p>
               </motion.article>
             ))}
           </div>

@@ -23,11 +23,15 @@ export class EventsService {
   async create(dto: CreateEventDto, actorId: string) {
     try {
       const slug = await this.resolveUniqueSlug(dto.slug, dto.title);
+      const normalizedSlots = this.normalizeTimeSlots(dto.timeSlots, dto.startTime, dto.endTime);
       const event = await this.prisma.event.create({
         data: {
           ...dto,
           slug,
           date: new Date(dto.date),
+          startTime: normalizedSlots[0].startTime,
+          endTime: normalizedSlots[normalizedSlots.length - 1].endTime,
+          timeSlots: normalizedSlots as unknown as Prisma.InputJsonValue,
         },
       });
 
@@ -40,10 +44,19 @@ export class EventsService {
 
   async update(id: string, dto: UpdateEventDto, actorId: string) {
     await this.getByIdOrThrow(id);
+    const currentEvent = await this.getByIdOrThrow(id);
+    const normalizedSlots =
+      dto.timeSlots || dto.startTime || dto.endTime
+        ? this.normalizeTimeSlots(dto.timeSlots, dto.startTime ?? currentEvent.startTime, dto.endTime ?? currentEvent.endTime)
+        : undefined;
+
     const payload: Prisma.EventUpdateInput = {
       ...dto,
       slug: dto.slug ? this.normalizeSlug(dto.slug) : undefined,
       date: dto.date ? new Date(dto.date) : undefined,
+      startTime: normalizedSlots?.[0].startTime,
+      endTime: normalizedSlots?.[normalizedSlots.length - 1].endTime,
+      timeSlots: normalizedSlots ? (normalizedSlots as unknown as Prisma.InputJsonValue) : undefined,
     };
 
     try {
@@ -182,19 +195,53 @@ export class EventsService {
     return candidate;
   }
 
-  private withComputedStatus(event: Event & { photos?: unknown[] }) {
-    const timezone = process.env.APP_TIMEZONE ?? 'America/Bogota';
+  private withComputedStatus(event: Event & { photos?: unknown[]; timeSlots?: Prisma.JsonValue | null }) {
     const now = new Date();
-
     const dateText = event.date.toISOString().slice(0, 10);
-    const start = new Date(`${dateText}T${event.startTime}:00`);
-    const end = new Date(`${dateText}T${event.endTime}:00`);
+    const slots = this.readTimeSlots(event.timeSlots, event.startTime, event.endTime);
+
+    const isCurrent = slots.some((slot) => {
+      const start = new Date(`${dateText}T${slot.startTime}:00`);
+      const end = new Date(`${dateText}T${slot.endTime}:00`);
+      return now >= start && now <= end;
+    });
+    const firstStart = new Date(`${dateText}T${slots[0].startTime}:00`);
+    const lastEnd = new Date(`${dateText}T${slots[slots.length - 1].endTime}:00`);
 
     let computedStatus: 'PROXIMO' | 'EN_REALIZACION' | 'FINALIZADO' = 'PROXIMO';
-    if (now >= start && now <= end) computedStatus = 'EN_REALIZACION';
-    if (now > end) computedStatus = 'FINALIZADO';
+    if (isCurrent) computedStatus = 'EN_REALIZACION';
+    else if (now > lastEnd) computedStatus = 'FINALIZADO';
+    else if (now < firstStart) computedStatus = 'PROXIMO';
 
-    return { ...event, computedStatus, timezone };
+    return { ...event, computedStatus, timeSlots: slots };
+  }
+
+  private normalizeTimeSlots(timeSlots: Array<{ startTime: string; endTime: string; label?: string }> | undefined, startTime: string, endTime: string) {
+    const baseSlots = timeSlots?.length ? timeSlots : [{ startTime, endTime }];
+
+    const normalized = baseSlots
+      .map((slot) => ({
+        startTime: slot.startTime,
+        endTime: slot.endTime,
+        label: slot.label?.trim() || undefined,
+      }))
+      .sort((a, b) => a.startTime.localeCompare(b.startTime));
+
+    normalized.forEach((slot) => {
+      if (slot.endTime <= slot.startTime) {
+        throw new BadRequestException('Cada franja debe tener una hora final posterior a la inicial');
+      }
+    });
+
+    return normalized;
+  }
+
+  private readTimeSlots(timeSlots: Prisma.JsonValue | null | undefined, startTime: string, endTime: string) {
+    if (Array.isArray(timeSlots) && timeSlots.length > 0) {
+      return timeSlots as Array<{ startTime: string; endTime: string; label?: string }>;
+    }
+
+    return [{ startTime, endTime }];
   }
 
   private async log(actorId: string, action: string, entityId: string, metadata: Prisma.InputJsonObject) {

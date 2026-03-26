@@ -32,4 +32,5 @@ export const DEFAULT_DOCUMENT_CATEGORIES = [
   "REGLAMENTOS",
   "LINEAMIENTOS",
   "COMUNICADOS",
+  "ACTAS",
 ] as const;

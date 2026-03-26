@@ -40,6 +40,35 @@ export function AdminShell({ children }: { children: ReactNode }) {
 
   const toggleSidebar = () => setIsOpen(!isOpen);
 
+  const NavLinkItem = ({
+    href,
+    label,
+    icon: Icon,
+    exact = false,
+  }: {
+    href: string;
+    label: string;
+    icon: typeof LayoutDashboard;
+    exact?: boolean;
+  }) => {
+    const isActive = exact ? pathname === href : pathname === href || pathname.startsWith(href + '/');
+
+    return (
+      <Link
+        href={href}
+        onClick={() => setIsOpen(false)}
+        className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition ${
+          isActive
+            ? 'bg-emerald-100 text-emerald-800 shadow-sm'
+            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+        }`}
+      >
+        <Icon size={18} />
+        <span>{label}</span>
+      </Link>
+    );
+  };
+
   const SidebarContent = () => (
     <div className="flex h-full flex-col">
       <div className="flex items-center justify-between mb-4">
@@ -48,26 +77,18 @@ export function AdminShell({ children }: { children: ReactNode }) {
           <X size={20} />
         </button>
       </div>
-      <nav className="space-y-1 overflow-y-auto flex-1 pb-4">
-        {adminLinks.map((link) => {
-          const isActive = pathname === link.href || pathname.startsWith(link.href + '/');
-          const Icon = link.icon;
-          // exact match for /admin to avoid highlighting dashboard on other pages
-          const isActuallyActive = link.href === '/admin' ? pathname === '/admin' : isActive;
-          return (
-            <Link
+      <nav className="flex-1 overflow-y-auto pb-4">
+        <div className="space-y-1">
+          {adminLinks.map((link) => (
+            <NavLinkItem
               key={link.href}
               href={link.href}
-              onClick={() => setIsOpen(false)}
-              className={`flex items-center gap-2 rounded-xl px-3 py-2 text-sm transition ${
-                isActuallyActive ? 'bg-emerald-100 text-emerald-800' : 'text-slate-600 hover:bg-slate-100'
-              }`}
-            >
-              <Icon size={16} />
-              {link.label}
-            </Link>
-          );
-        })}
+              label={link.label}
+              icon={link.icon}
+              exact={link.href === '/admin'}
+            />
+          ))}
+        </div>
       </nav>
     </div>
   );

@@ -28,4 +28,12 @@ export class CreatePersonDto {
   @IsOptional()
   @IsString()
   photoUrl?: string;
+
+  @IsOptional()
+  @IsString()
+  instagramUrl?: string;
+
+  @IsOptional()
+  @IsString()
+  instagramLabel?: string;
 }

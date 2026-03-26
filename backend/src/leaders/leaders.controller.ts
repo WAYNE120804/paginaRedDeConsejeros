@@ -35,6 +35,12 @@ export class LeadersController {
     return { data, error: null };
   }
 
+  @Get('history/:personId')
+  async history(@Param('personId') personId: string) {
+    const data = await this.leaderService.getHistory(personId);
+    return { data, error: null };
+  }
+
   @Patch(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(AdminRole.SUPERADMIN, AdminRole.SECRETARIO)
